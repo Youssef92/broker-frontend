@@ -25,7 +25,7 @@ const getDeviceId = () => {
 
 // ---- Axios Instance ----
 const axiosInstance = axios.create({
-  baseURL: "",
+  baseURL: import.meta.env.VITE_API_URL || "",
   headers: {
     "Content-Type": "application/json",
     "X-Client-Id": CLIENT_ID,
