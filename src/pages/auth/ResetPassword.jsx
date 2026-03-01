@@ -1,37 +1,46 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
-import { loginSchema } from "../../validation/loginSchema";
-import { loginUser } from "../../services/authService";
-import useAuth from "../../hooks/useAuth";
+import { resetPasswordSchema } from "../../validation/resetPasswordSchema";
+import { resetPassword } from "../../services/authService";
 import logo from "../../assets/logo.png";
 
-function Login() {
+function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const { login } = useAuth();
+  const [searchParams] = useSearchParams();
+  const email = searchParams.get("email");
+  const token = searchParams.get("token");
+
+  const navigate = useNavigate();
 
   const {
     register,
     handleSubmit,
     formState: { errors, touchedFields },
-    getValues,
   } = useForm({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(resetPasswordSchema),
     mode: "onBlur",
-    reValidateMode: "onBlur",
   });
 
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const result = await loginUser(data);
+      const result = await resetPassword({
+        email,
+        token,
+        newPassword: data.newPassword,
+        confirmPassword: data.confirmPassword,
+      });
+
       if (result.succeeded) {
-        login(result.data);
+        toast.success("Password reset successfully!");
+        navigate("/login");
       } else {
         toast.error(result.message || "Something went wrong.");
       }
@@ -43,10 +52,9 @@ function Login() {
     }
   };
 
-  const getFieldBorderColor = (fieldName) => {
-    const value = getValues(fieldName);
+  const getPasswordBorderColor = (fieldName) => {
     if (errors[fieldName]) return "border-red-500";
-    if (touchedFields[fieldName] && value) return "border-green-500";
+    if (touchedFields[fieldName]) return "border-green-500";
     return "border-[#e7b965]";
   };
 
@@ -65,34 +73,21 @@ function Login() {
 
       <div className="absolute top-[18%] left-[50%] -translate-x-1/2 md:top-[10%] md:left-[45%] md:-translate-x-0 flex items-center justify-center">
         <div className="bg-white w-[300px] md:w-[400px] rounded-2xl shadow-xl px-8 py-6">
-          <h2 className="text-xl font-semibold mb-6">Welcome Back</h2>
+          <h2 className="text-xl font-semibold mb-2">Reset Password</h2>
+          <p className="text-sm text-[#949494] mb-6">
+            Enter your new password below.
+          </p>
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="mb-3">
               <label className="block mb-1 text-sm font-medium text-[#949494]">
-                Email
-              </label>
-              <input
-                type="email"
-                {...register("email")}
-                className={`border p-2 w-full rounded transition-all duration-200 ${getFieldBorderColor("email")}`}
-              />
-              {errors.email && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-
-            <div className="mb-2">
-              <label className="block mb-1 text-sm font-medium text-[#949494]">
-                Password
+                New Password
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  {...register("password")}
-                  className={`border p-2 w-full rounded transition-all duration-200 pr-10 ${getFieldBorderColor("password")}`}
+                  {...register("newPassword")}
+                  className={`border p-2 w-full rounded transition-all duration-200 pr-10 ${getPasswordBorderColor("newPassword")}`}
                 />
                 <button
                   type="button"
@@ -102,20 +97,40 @@ function Login() {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              {errors.password && (
+              {errors.newPassword && (
                 <p className="text-red-500 text-sm mt-1">
-                  {errors.password.message}
+                  {errors.newPassword.message}
                 </p>
               )}
             </div>
 
-            <div className="flex justify-end mb-4">
-              <Link
-                to="/forget-password"
-                className="text-sm text-[#c1aa77] hover:underline"
-              >
-                Forgot Password?
-              </Link>
+            <div className="mb-4">
+              <label className="block mb-1 text-sm font-medium text-[#949494]">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  {...register("confirmPassword")}
+                  className={`border p-2 w-full rounded transition-all duration-200 pr-10 ${getPasswordBorderColor("confirmPassword")}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.confirmPassword.message}
+                </p>
+              )}
             </div>
 
             <button
@@ -125,32 +140,13 @@ function Login() {
                 loading ? "bg-[#c1aa77]/50 cursor-not-allowed" : "bg-[#c1aa77]"
               }`}
             >
-              {loading ? "Signing in..." : "Login"}
+              {loading ? "Resetting..." : "Reset Password"}
             </button>
           </form>
-          <div className="mt-3 text-center text-sm">
-            <Link
-              to="/resend-confirmation"
-              className="text-[#c1aa77] hover:underline"
-            >
-              Didn't receive confirmation email?
-            </Link>
-          </div>
-          <div className="mt-4 text-center text-sm">
-            <p>
-              Don't have an account?{" "}
-              <Link
-                to="/register"
-                className="text-[#c1aa77] font-medium hover:underline"
-              >
-                Register
-              </Link>
-            </p>
-          </div>
         </div>
       </div>
     </div>
   );
 }
 
-export default Login;
+export default ResetPassword;

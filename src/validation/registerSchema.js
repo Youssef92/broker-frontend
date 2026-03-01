@@ -9,17 +9,20 @@ export const registerSchema = z
       .regex(/^[A-Za-z]+$/, "First name must contain letters only"),
     lastName: z
       .string()
+      .trim()
       .min(2, "Last name must be at least 2 characters")
       .max(20, "Last name must be at most 20 characters")
       .regex(/^[A-Za-z]+$/, "Last name must contain letters only"),
     email: z
       .string()
+      .trim()
       .regex(
         /^[A-Za-z][A-Za-z0-9._%+-]*@gmail\.com$/,
         "Email must be a valid Gmail address",
       ),
     phoneNumber: z
       .string()
+      .trim()
       .regex(
         /^01[0125][0-9]{8}$/,
         "Phone must be Egyptian number (010,011,012,015) and 8 digits",
@@ -27,6 +30,7 @@ export const registerSchema = z
     address: z.object({
       country: z
         .string()
+        .trim()
         .min(2, "Country must be at least 2 characters")
         .regex(/^[A-Za-z]+$/, "Country must contain letters only"),
       city: z
@@ -35,6 +39,7 @@ export const registerSchema = z
         .regex(/^[A-Za-z]+$/, "City must contain letters only"),
       street: z
         .string()
+        .trim()
         .optional()
         .or(z.literal(""))
         .refine(
@@ -43,18 +48,18 @@ export const registerSchema = z
         ),
       state: z
         .string()
-        .optional()
-        .or(z.literal(""))
+        .trim()
+        .min(1, "State is required")
         .refine(
-          (val) => !val || /^[A-Za-z\s]+$/.test(val),
+          (val) => /^[A-Za-z\s]+$/.test(val),
           "State must contain letters only",
         ),
       zipCode: z
         .string()
-        .optional()
-        .or(z.literal(""))
+        .trim()
+        .min(1, "Zip code is required")
         .refine(
-          (val) => !val || /^[0-9]{7}$/.test(val),
+          (val) => /^[0-9]{7}$/.test(val),
           "Zip code must be exactly 7 digits",
         ),
     }),

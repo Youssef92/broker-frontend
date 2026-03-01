@@ -161,7 +161,7 @@ function Register() {
               Already have an account?{" "}
               <Link
                 to="/login"
-                className="text-blue-600 font-medium hover:underline"
+                className="text-[#c1aa77] font-medium hover:underline"
               >
                 Login
               </Link>
@@ -203,7 +203,7 @@ function StepOne({ next }) {
 
         return (
           <div key={field} className="mb-3">
-            <label className="block mb-1 text-sm font-medium capitalize">
+            <label className="block mb-1 text-sm font-medium capitalize text-[#949494]">
               {field.replace(/([A-Z])/g, " $1")}
             </label>
             <input
@@ -221,7 +221,7 @@ function StepOne({ next }) {
       <button
         type="button"
         onClick={handleNext}
-        className="bg-black text-white px-4 py-2 rounded w-full"
+        className="bg-[#c1aa77] text-white px-4 py-2 rounded w-full"
       >
         Next
       </button>
@@ -259,7 +259,7 @@ function StepTwo({ next, back }) {
 
         return (
           <div key={field} className="mb-3">
-            <label className="block mb-1 text-sm font-medium capitalize">
+            <label className="block mb-1 text-sm font-medium capitalize text-[#949494]">
               {field}
             </label>
             <input
@@ -280,14 +280,14 @@ function StepTwo({ next, back }) {
         <button
           type="button"
           onClick={back}
-          className="bg-gray-500 text-white px-4 py-2 rounded"
+          className="bg-[#c1aa77] text-white px-4 py-2 rounded"
         >
           Back
         </button>
         <button
           type="button"
           onClick={handleNext}
-          className="bg-black text-white px-4 py-2 rounded"
+          className="bg-[#c1aa77] text-white px-4 py-2 rounded"
         >
           Next
         </button>
@@ -310,7 +310,9 @@ function StepThree({ back, loading }) {
 
       {/* Role */}
       <div className="mb-4">
-        <label className="block mb-2 text-sm font-medium">Role</label>
+        <label className="block mb-2 text-sm font-medium text-[#949494]">
+          Role
+        </label>
         <div className="flex gap-6">
           {[
             { value: 0, label: "Client" },
@@ -327,9 +329,10 @@ function StepThree({ back, loading }) {
         )}
       </div>
 
-      {/* Password */}
       <div className="mb-3">
-        <label className="block mb-1 text-sm font-medium">Password</label>
+        <label className="block mb-1 text-sm font-medium text-[#949494]">
+          Password
+        </label>
         <div className="relative">
           <input
             type={showPassword ? "text" : "password"}
@@ -355,9 +358,8 @@ function StepThree({ back, loading }) {
         )}
       </div>
 
-      {/* Confirm Password */}
       <div className="mb-4">
-        <label className="block mb-1 text-sm font-medium">
+        <label className="block mb-1 text-sm font-medium text-[#949494]">
           Confirm Password
         </label>
         <div className="relative">
@@ -387,12 +389,11 @@ function StepThree({ back, loading }) {
         )}
       </div>
 
-      {/* Navigation Buttons */}
       <div className="flex justify-between">
         <button
           type="button"
           onClick={back}
-          className="bg-gray-500 text-white px-4 py-2 rounded"
+          className="bg-[#c1aa77] text-white px-4 py-2 rounded"
         >
           Back
         </button>
@@ -400,7 +401,7 @@ function StepThree({ back, loading }) {
           type="submit"
           disabled={loading}
           className={`text-white px-4 py-2 rounded transition-all duration-200 ${
-            loading ? "bg-green-400 cursor-not-allowed" : "bg-green-600"
+            loading ? "bg-[#c1aa77]/50 cursor-not-allowed" : "bg-[#c1aa77]"
           }`}
         >
           {loading ? "Creating..." : "Submit"}

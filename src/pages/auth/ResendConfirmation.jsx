@@ -3,11 +3,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { forgotPassword } from "../../services/authService";
-import { forgetPasswordSchema } from "../../validation/forgetPasswordSchema";
+import { resendConfirmationSchema } from "../../validation/resendConfirmationSchema";
+import { resendConfirmation } from "../../services/authService";
 import logo from "../../assets/logo.png";
 
-function ForgetPassword() {
+function ResendConfirmation() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
@@ -17,17 +17,18 @@ function ForgetPassword() {
     formState: { errors, touchedFields },
     getValues,
   } = useForm({
-    resolver: zodResolver(forgetPasswordSchema),
+    resolver: zodResolver(resendConfirmationSchema),
     mode: "onBlur",
+    // reValidateMode: "onBlur",
   });
 
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const result = await forgotPassword(data.email);
+      const result = await resendConfirmation(data.email);
       if (result.succeeded) {
         setSent(true);
-        toast.success("Reset link sent! Check your email.");
+        toast.success("Confirmation email sent! Check your inbox.");
       } else {
         toast.error(result.message || "Something went wrong.");
       }
@@ -60,25 +61,25 @@ function ForgetPassword() {
 
       <div className="absolute top-[18%] left-[50%] -translate-x-1/2 md:top-[10%] md:left-[45%] md:-translate-x-0 flex items-center justify-center">
         <div className="bg-white w-[300px] md:w-[400px] rounded-2xl shadow-xl px-8 py-6">
-          <h2 className="text-xl font-semibold mb-2">Forgot Password</h2>
-          <p className="text-sm text-gray-500 mb-6">
-            Enter your email and we'll send you a reset link.
+          <h2 className="text-xl font-semibold mb-2">Resend Confirmation</h2>
+          <p className="text-sm text-[#949494] mb-6">
+            Enter your email and we'll resend the confirmation link.
           </p>
 
           {sent ? (
             <div className="text-center">
               <p className="text-green-600 font-medium mb-4">
-                Reset link sent! Check your inbox.
+                Confirmation email sent! Check your inbox.
               </p>
               <Link
                 to="/login"
-                className="text-[#c1aa77] font-medium hover:underline"
+                className="text-[#c1aa77] text-sm hover:underline"
               >
                 Back to Login
               </Link>
             </div>
           ) : (
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form onSubmit={handleSubmit(onSubmit)} noValidate>
               <div className="mb-4">
                 <label className="block mb-1 text-sm font-medium text-[#949494]">
                   Email
@@ -104,15 +105,12 @@ function ForgetPassword() {
                     : "bg-[#c1aa77]"
                 }`}
               >
-                {loading ? "Sending..." : "Send Reset Link"}
+                {loading ? "Sending..." : "Resend Confirmation"}
               </button>
 
               <div className="mt-4 text-center text-sm">
-                <Link
-                  to="/login"
-                  className="text-[#c1aa77] font-medium hover:underline"
-                >
-                  Login
+                <Link to="/login" className="text-[#c1aa77] hover:underline">
+                  Back to Login
                 </Link>
               </div>
             </form>
@@ -123,4 +121,4 @@ function ForgetPassword() {
   );
 }
 
-export default ForgetPassword;
+export default ResendConfirmation;
