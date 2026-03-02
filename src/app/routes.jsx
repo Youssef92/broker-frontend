@@ -5,6 +5,8 @@ import ForgetPassword from "../pages/auth/ForgetPassword";
 import ResetPassword from "../pages/auth/ResetPassword";
 import ConfirmEmail from "../pages/auth/ConfirmEmail";
 import ResendConfirmation from "../pages/auth/ResendConfirmation";
+import MyProfile from "../pages/profile/MyProfile";
+import UserProfile from "../pages/profile/UserProfile";
 
 function AppRoutes() {
   return (
@@ -16,6 +18,8 @@ function AppRoutes() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/confirm-email" element={<ConfirmEmail />} />
       <Route path="/resend-confirmation" element={<ResendConfirmation />} />
+      <Route path="/profile" element={<MyProfile />} />
+      <Route path="/user/:userId" element={<UserProfile />} />
     </Routes>
   );
 }

@@ -52,3 +52,11 @@ export const resendConfirmation = async (email) => {
   );
   return response.data;
 };
+
+export const changePassword = async (data) => {
+  const response = await axiosInstance.post(
+    `${AUTH_BASE}/change-password`,
+    data,
+  );
+  return response.data;
+};

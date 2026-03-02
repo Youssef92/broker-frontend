@@ -19,7 +19,6 @@ function ResendConfirmation() {
   } = useForm({
     resolver: zodResolver(resendConfirmationSchema),
     mode: "onBlur",
-    // reValidateMode: "onBlur",
   });
 
   const onSubmit = async (data) => {
