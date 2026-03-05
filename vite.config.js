@@ -11,8 +11,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target:
-          "https://brokersystemapi-gwcjhnbzaggfbygq.italynorth-01.azurewebsites.net",
+        target: "http://brokersystem.runasp.net",
         changeOrigin: true,
       },
     },
