@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { confirmEmail } from "../../services/authService";
-import logo from "../../assets/logo.png";
 
 function ConfirmEmail() {
   const [status, setStatus] = useState("loading");
@@ -28,67 +27,99 @@ function ConfirmEmail() {
         );
       }
     };
-
     verify();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <div className="relative flex flex-col md:flex-row min-h-screen w-full">
-      <div className="w-full md:w-1/2 bg-[#efe3cd] flex items-center justify-center">
-        <div>
-          <img src={logo} alt="" className="w-[100px] md:w-[250px]" />
-          <p className="flex justify-center text-2xl md:text-5xl mb-10">
-            AquaKeys
+    <div className="min-h-screen flex font-jost bg-[var(--dark)]">
+      <div className="relative flex-1 hidden md:flex flex-col justify-end p-16 overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80')",
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--dark)] via-[#0d0d0d]/50 to-[#0d0d0d]/20" />
+        <div className="absolute top-12 left-16 z-10 font-cormorant text-2xl tracking-[4px] uppercase text-[var(--gold)]">
+          Aqua<span className="text-[var(--cream)]">Keys</span>
+        </div>
+        <div className="relative z-10">
+          <p className="text-[10px] tracking-[5px] uppercase text-[var(--gold)] mb-4">
+            Email Verification
+          </p>
+          <h1 className="font-cormorant text-5xl font-light leading-tight text-[var(--cream)] mb-4">
+            Almost
+            <br />
+            <em className="italic text-[var(--gold-light)]">There</em>
+          </h1>
+          <p className="text-sm text-[#f5f0e8]/50 font-light leading-relaxed max-w-sm">
+            Confirming your email address to complete your registration.
           </p>
         </div>
       </div>
 
-      <div className="w-full md:w-1/2 bg-[#f0eff0]" />
+      <div className="w-full md:w-[480px] shrink-0 bg-[var(--dark-2)] flex flex-col justify-center px-14 py-16 border-l border-[#c1aa77]/10 text-center">
+        {status === "loading" && (
+          <>
+            <p className="text-[10px] tracking-[5px] uppercase text-[var(--gold)] mb-3">
+              Please Wait
+            </p>
+            <h2 className="font-cormorant text-4xl font-normal text-[var(--cream)] mb-4">
+              Confirming...
+            </h2>
+            <p className="text-[#f5f0e8]/30 text-sm tracking-wide">
+              Verifying your email address
+            </p>
+          </>
+        )}
 
-      <div className="absolute top-[18%] left-[50%] -translate-x-1/2 md:top-[10%] md:left-[45%] md:-translate-x-0 flex items-center justify-center">
-        <div className="bg-white w-[300px] md:w-[400px] rounded-2xl shadow-xl px-8 py-10 text-center">
-          {status === "loading" && (
-            <p className="text-[#949494]">Confirming your email...</p>
-          )}
+        {status === "success" && (
+          <>
+            <div className="w-16 h-16 rounded-full border border-[var(--gold)]/30 flex items-center justify-center mx-auto mb-8">
+              <span className="text-[var(--gold)] text-2xl">✓</span>
+            </div>
+            <p className="text-[10px] tracking-[5px] uppercase text-[var(--gold)] mb-3">
+              Success
+            </p>
+            <h2 className="font-cormorant text-4xl font-normal text-[var(--cream)] mb-4">
+              Email Confirmed!
+            </h2>
+            <p className="text-[#f5f0e8]/40 text-sm mb-12 tracking-wide">
+              {message}
+            </p>
+            <button
+              onClick={() => navigate("/login")}
+              className="w-full py-4 bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[var(--dark)] text-xs tracking-[4px] uppercase font-medium transition-all duration-300"
+            >
+              Sign In
+            </button>
+          </>
+        )}
 
-          {status === "success" && (
-            <>
-              <div className="flex justify-center mb-4">
-                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-                  <span className="text-green-500 text-3xl">✓</span>
-                </div>
-              </div>
-              <h2 className="text-xl font-semibold mb-2">Email Confirmed!</h2>
-              <p className="text-[#949494] text-sm mb-6">{message}</p>
-              <button
-                onClick={() => navigate("/login")}
-                className="w-full bg-[#c1aa77] text-white py-2 rounded transition-all duration-200 hover:bg-[#c1aa77]/80"
-              >
-                Go to Login
-              </button>
-            </>
-          )}
-
-          {status === "error" && (
-            <>
-              <div className="flex justify-center mb-4">
-                <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
-                  <span className="text-red-500 text-3xl">✕</span>
-                </div>
-              </div>
-              <h2 className="text-xl font-semibold mb-2">
-                Confirmation Failed
-              </h2>
-              <p className="text-[#949494] text-sm mb-6">{message}</p>
-              <button
-                onClick={() => navigate("/login")}
-                className="w-full bg-[#c1aa77] text-white py-2 rounded transition-all duration-200 hover:bg-[#c1aa77]/80"
-              >
-                Go to Login
-              </button>
-            </>
-          )}
-        </div>
+        {status === "error" && (
+          <>
+            <div className="w-16 h-16 rounded-full border border-red-400/30 flex items-center justify-center mx-auto mb-8">
+              <span className="text-red-400 text-2xl">✕</span>
+            </div>
+            <p className="text-[10px] tracking-[5px] uppercase text-red-400 mb-3">
+              Failed
+            </p>
+            <h2 className="font-cormorant text-4xl font-normal text-[var(--cream)] mb-4">
+              Confirmation Failed
+            </h2>
+            <p className="text-[#f5f0e8]/40 text-sm mb-12 tracking-wide">
+              {message}
+            </p>
+            <button
+              onClick={() => navigate("/login")}
+              className="w-full py-4 bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[var(--dark)] text-xs tracking-[4px] uppercase font-medium transition-all duration-300"
+            >
+              Go to Login
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

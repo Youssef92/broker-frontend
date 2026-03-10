@@ -59,7 +59,7 @@ export const registerSchema = z
         .trim()
         .min(1, "Zip code is required")
         .refine(
-          (val) => /^[0-9]{7}$/.test(val),
+          (val) => /^[0-9]{5}$/.test(val),
           "Zip code must be exactly 7 digits",
         ),
     }),

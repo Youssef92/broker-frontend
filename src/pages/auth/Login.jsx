@@ -7,7 +7,6 @@ import { Eye, EyeOff } from "lucide-react";
 import { loginSchema } from "../../validation/loginSchema";
 import { loginUser } from "../../services/authService";
 import useAuth from "../../hooks/useAuth";
-import logo from "../../assets/logo.png";
 
 function Login() {
   const [loading, setLoading] = useState(false);
@@ -18,8 +17,7 @@ function Login() {
   const {
     register,
     handleSubmit,
-    formState: { errors, touchedFields },
-    getValues,
+    formState: { errors },
   } = useForm({
     resolver: zodResolver(loginSchema),
     mode: "onBlur",
@@ -43,110 +41,160 @@ function Login() {
     }
   };
 
-  const getFieldBorderColor = (fieldName) => {
-    const value = getValues(fieldName);
-    if (errors[fieldName]) return "border-red-500";
-    if (touchedFields[fieldName] && value) return "border-green-500";
-    return "border-[#e7b965]";
-  };
-
   return (
-    <div className="relative flex flex-col md:flex-row min-h-screen w-full">
-      <div className="w-full md:w-1/2 bg-[#efe3cd] flex items-center justify-center">
-        <div>
-          <img src={logo} alt="" className="w-[100px] md:w-[250px]" />
-          <p className="flex justify-center text-2xl md:text-5xl mb-10">
-            AquaKeys
+    <div className="min-h-screen flex font-jost bg-[var(--dark)]">
+      {/* LEFT SIDE */}
+      <div className="relative flex-1 hidden md:flex flex-col justify-end p-16 overflow-hidden">
+        {/* Background Image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1200&q=80')",
+          }}
+        />
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--dark)] via-[#0d0d0d]/50 to-[#0d0d0d]/20" />
+
+        {/* Brand */}
+        <div className="absolute top-12 left-16 z-10 font-cormorant text-2xl tracking-[4px] uppercase text-[var(--gold)]">
+          Aqua<span className="text-[var(--cream)]">Keys</span>
+        </div>
+
+        {/* Bottom Content */}
+        <div className="relative z-10">
+          <p className="text-[10px] tracking-[5px] uppercase text-[var(--gold)] mb-4">
+            Welcome Back
+          </p>
+          <h1 className="font-cormorant text-5xl font-light leading-tight text-[var(--cream)] mb-4">
+            Your Next
+            <br />
+            <em className="italic text-[var(--gold-light)]">Home Awaits</em>
+          </h1>
+          <p className="text-sm text-[#f5f0e8]/50 font-light leading-relaxed max-w-sm">
+            Sign in to access exclusive property listings and continue your
+            journey to finding the perfect home.
           </p>
         </div>
       </div>
 
-      <div className="w-full md:w-1/2 bg-[#f0eff0]" />
+      {/* RIGHT SIDE */}
+      <div className="w-full md:w-[480px] shrink-0 bg-[var(--dark-2)] flex flex-col justify-center px-14 py-16 border-l border-[#c1aa77]/10">
+        <p className="text-[10px] tracking-[5px] uppercase text-[var(--gold)] mb-3">
+          Sign In
+        </p>
+        <h2 className="font-cormorant text-4xl font-normal text-[var(--cream)] mb-2">
+          Welcome Back
+        </h2>
+        <p className="text-sm text-[#f5f0e8]/40 mb-12 tracking-wide">
+          Enter your credentials to continue
+        </p>
 
-      <div className="absolute top-[18%] left-[50%] -translate-x-1/2 md:top-[10%] md:left-[45%] md:-translate-x-0 flex items-center justify-center">
-        <div className="bg-white w-[300px] md:w-[400px] rounded-2xl shadow-xl px-8 py-6">
-          <h2 className="text-xl font-semibold mb-6">Welcome Back</h2>
-
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="mb-3">
-              <label className="block mb-1 text-sm font-medium text-[#949494]">
-                Email
-              </label>
-              <input
-                type="email"
-                {...register("email")}
-                className={`border p-2 w-full rounded transition-all duration-200 ${getFieldBorderColor("email")}`}
-              />
-              {errors.email && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-
-            <div className="mb-2">
-              <label className="block mb-1 text-sm font-medium text-[#949494]">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  {...register("password")}
-                  className={`border p-2 w-full rounded transition-all duration-200 pr-10 ${getFieldBorderColor("password")}`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-              {errors.password && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
-
-            <div className="flex justify-end mb-4">
-              <Link
-                to="/forget-password"
-                className="text-sm text-[#c1aa77] hover:underline"
-              >
-                Forgot Password?
-              </Link>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full text-white px-4 py-2 rounded transition-all duration-200 ${
-                loading ? "bg-[#c1aa77]/50 cursor-not-allowed" : "bg-[#c1aa77]"
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          {/* Email */}
+          <div className="mb-8">
+            <label className="block text-[10px] tracking-[3px] uppercase text-[#c1aa77]/70 mb-2">
+              Email Address
+            </label>
+            <input
+              type="email"
+              {...register("email")}
+              placeholder="your@gmail.com"
+              className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none transition-colors duration-300 ${
+                errors.email
+                  ? "border-red-400"
+                  : "border-[#c1aa77]/20 focus:border-[var(--gold)]"
               }`}
+            />
+            {errors.email && (
+              <p className="text-red-400 text-xs mt-2 tracking-wide">
+                {errors.email.message}
+              </p>
+            )}
+          </div>
+
+          {/* Password */}
+          <div className="mb-4 relative">
+            <label className="block text-[10px] tracking-[3px] uppercase text-[#c1aa77]/70 mb-2">
+              Password
+            </label>
+            <input
+              type={showPassword ? "text" : "password"}
+              {...register("password")}
+              placeholder="••••••••"
+              className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none transition-colors duration-300 pr-8 ${
+                errors.password
+                  ? "border-red-400"
+                  : "border-[#c1aa77]/20 focus:border-[var(--gold)]"
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-0 bottom-3 text-[#f5f0e8]/30 hover:text-[var(--gold)] transition-colors"
             >
-              {loading ? "Signing in..." : "Login"}
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
-          </form>
-          <div className="mt-3 text-center text-sm">
+            {errors.password && (
+              <p className="text-red-400 text-xs mt-2 tracking-wide">
+                {errors.password.message}
+              </p>
+            )}
+          </div>
+
+          {/* Forgot */}
+          <div className="flex justify-end mb-10">
             <Link
-              to="/resend-confirmation"
-              className="text-[#c1aa77] hover:underline"
+              to="/forget-password"
+              className="text-[11px] tracking-wide text-[#c1aa77]/50 hover:text-[var(--gold)] transition-colors"
             >
-              Didn't receive confirmation email?
+              Forgot Password?
             </Link>
           </div>
-          <div className="mt-4 text-center text-sm">
-            <p>
-              Don't have an account?{" "}
-              <Link
-                to="/register"
-                className="text-[#c1aa77] font-medium hover:underline"
-              >
-                Register
-              </Link>
-            </p>
-          </div>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full py-4 text-[var(--dark)] text-xs tracking-[4px] uppercase font-medium transition-all duration-300 mb-6 ${
+              loading
+                ? "bg-[#c1aa77]/50 cursor-not-allowed"
+                : "bg-[var(--gold)] hover:bg-[var(--gold-light)]"
+            }`}
+          >
+            {loading ? "Signing In..." : "Sign In"}
+          </button>
+        </form>
+
+        {/* Divider */}
+        <div className="flex items-center gap-4 mb-6">
+          <div className="flex-1 h-px bg-[#c1aa77]/10" />
+          <span className="text-[10px] tracking-[2px] uppercase text-[#f5f0e8]/20">
+            or
+          </span>
+          <div className="flex-1 h-px bg-[#c1aa77]/10" />
+        </div>
+
+        {/* Links */}
+        <div className="text-center text-xs text-[#f5f0e8]/30 tracking-wide leading-8">
+          <p>
+            Don't have an account?{" "}
+            <Link
+              to="/register"
+              className="text-[var(--gold)] hover:text-[var(--gold-light)] transition-colors"
+            >
+              Register
+            </Link>
+          </p>
+          <p>
+            Didn't receive confirmation?{" "}
+            <Link
+              to="/resend-confirmation"
+              className="text-[var(--gold)] hover:text-[var(--gold-light)] transition-colors"
+            >
+              Resend Email
+            </Link>
+          </p>
         </div>
       </div>
     </div>

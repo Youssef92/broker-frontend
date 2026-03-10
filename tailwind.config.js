@@ -2,7 +2,12 @@
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        cormorant: ["Cormorant Garamond", "serif"],
+        jost: ["Jost", "sans-serif"],
+      },
+    },
   },
   plugins: [],
 };

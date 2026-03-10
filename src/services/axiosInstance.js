@@ -25,7 +25,7 @@ const getDeviceId = () => {
 
 // ---- Axios Instance ----
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "",
+  baseURL: import.meta.env.VITE_API_URL || "http://brokersystem.runasp.net",
   headers: {
     "Content-Type": "application/json",
     "X-Client-Id": CLIENT_ID,
@@ -66,7 +66,8 @@ axiosInstance.interceptors.response.use(
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !originalRequest.url.includes("/refresh-token")
+      !originalRequest.url.includes("/refresh-token") &&
+      !originalRequest.url.includes("/sign-in")
     ) {
       if (isRefreshing) {
         // if already refreshing, add to queue and wait

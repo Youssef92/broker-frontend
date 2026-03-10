@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { refreshTokenRequest } from "../services/authService";
 import { setAccessToken, clearAccessToken } from "../utils/tokenManager";
 import { AuthContext } from "./authContextValue";
+import { getMyProfile } from "../services/profileService";
 
 const REFRESH_TOKEN_KEY = "refreshToken";
 
@@ -34,7 +35,12 @@ export function AuthProvider({ children }) {
         if (result.succeeded) {
           setAccessToken(result.data.accessToken);
           localStorage.setItem(REFRESH_TOKEN_KEY, result.data.refreshToken);
-          setUser(result.data.user);
+          const profile = await getMyProfile();
+          if (profile.succeeded) {
+            setUser(profile.data);
+          } else {
+            setUser({ accessToken: result.data.accessToken });
+          }
         } else {
           logout();
         }
@@ -48,11 +54,18 @@ export function AuthProvider({ children }) {
     restoreSession();
   }, [logout]);
 
-  const login = (data) => {
+  const login = async (data) => {
     setAccessToken(data.accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
-    setUser(data.user);
-    navigate("/home");
+    try {
+      const profile = await getMyProfile();
+      if (profile.succeeded) {
+        setUser(profile.data);
+      }
+    } catch {
+      setUser({ accessToken: data.accessToken });
+    }
+    navigate("/");
   };
 
   if (isLoading) {

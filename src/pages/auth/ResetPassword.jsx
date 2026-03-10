@@ -6,7 +6,6 @@ import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
 import { resetPasswordSchema } from "../../validation/resetPasswordSchema";
 import { resetPassword } from "../../services/authService";
-import logo from "../../assets/logo.png";
 
 function ResetPassword() {
   const [loading, setLoading] = useState(false);
@@ -16,7 +15,6 @@ function ResetPassword() {
   const [searchParams] = useSearchParams();
   const email = searchParams.get("email");
   const token = searchParams.get("token");
-
   const navigate = useNavigate();
 
   const {
@@ -37,7 +35,6 @@ function ResetPassword() {
         newPassword: data.newPassword,
         confirmPassword: data.confirmPassword,
       });
-
       if (result.succeeded) {
         toast.success("Password reset successfully!");
         navigate("/login");
@@ -45,105 +42,128 @@ function ResetPassword() {
         toast.error(result.message || "Something went wrong.");
       }
     } catch (err) {
-      const message = err.response?.data?.message;
-      toast.error(message || "Something went wrong, please try again.");
+      toast.error(
+        err.response?.data?.message ||
+          "Something went wrong, please try again.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const getPasswordBorderColor = (fieldName) => {
-    if (errors[fieldName]) return "border-red-500";
-    if (touchedFields[fieldName]) return "border-green-500";
-    return "border-[#e7b965]";
-  };
-
   return (
-    <div className="relative flex flex-col md:flex-row min-h-screen w-full">
-      <div className="w-full md:w-1/2 bg-[#efe3cd] flex items-center justify-center">
-        <div>
-          <img src={logo} alt="" className="w-[100px] md:w-[250px]" />
-          <p className="flex justify-center text-2xl md:text-5xl mb-10">
-            AquaKeys
+    <div className="min-h-screen flex font-jost bg-[var(--dark)]">
+      <div className="relative flex-1 hidden md:flex flex-col justify-end p-16 overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80')",
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--dark)] via-[#0d0d0d]/50 to-[#0d0d0d]/20" />
+        <div className="absolute top-12 left-16 z-10 font-cormorant text-2xl tracking-[4px] uppercase text-[var(--gold)]">
+          Aqua<span className="text-[var(--cream)]">Keys</span>
+        </div>
+        <div className="relative z-10">
+          <p className="text-[10px] tracking-[5px] uppercase text-[var(--gold)] mb-4">
+            Account Recovery
+          </p>
+          <h1 className="font-cormorant text-5xl font-light leading-tight text-[var(--cream)] mb-4">
+            Create New
+            <br />
+            <em className="italic text-[var(--gold-light)]">Password</em>
+          </h1>
+          <p className="text-sm text-[#f5f0e8]/50 font-light leading-relaxed max-w-sm">
+            Choose a strong password to secure your account.
           </p>
         </div>
       </div>
 
-      <div className="w-full md:w-1/2 bg-[#f0eff0]" />
+      <div className="w-full md:w-[480px] shrink-0 bg-[var(--dark-2)] flex flex-col justify-center px-14 py-16 border-l border-[#c1aa77]/10">
+        <p className="text-[10px] tracking-[5px] uppercase text-[var(--gold)] mb-3">
+          New Password
+        </p>
+        <h2 className="font-cormorant text-4xl font-normal text-[var(--cream)] mb-2">
+          Reset Password
+        </h2>
+        <p className="text-sm text-[#f5f0e8]/40 mb-12 tracking-wide">
+          Enter your new password below
+        </p>
 
-      <div className="absolute top-[18%] left-[50%] -translate-x-1/2 md:top-[10%] md:left-[45%] md:-translate-x-0 flex items-center justify-center">
-        <div className="bg-white w-[300px] md:w-[400px] rounded-2xl shadow-xl px-8 py-6">
-          <h2 className="text-xl font-semibold mb-2">Reset Password</h2>
-          <p className="text-sm text-[#949494] mb-6">
-            Enter your new password below.
-          </p>
-
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="mb-3">
-              <label className="block mb-1 text-sm font-medium text-[#949494]">
-                New Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  {...register("newPassword")}
-                  className={`border p-2 w-full rounded transition-all duration-200 pr-10 ${getPasswordBorderColor("newPassword")}`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-              {errors.newPassword && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.newPassword.message}
-                </p>
-              )}
-            </div>
-
-            <div className="mb-4">
-              <label className="block mb-1 text-sm font-medium text-[#949494]">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  {...register("confirmPassword")}
-                  className={`border p-2 w-full rounded transition-all duration-200 pr-10 ${getPasswordBorderColor("confirmPassword")}`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword((prev) => !prev)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff size={18} />
-                  ) : (
-                    <Eye size={18} />
-                  )}
-                </button>
-              </div>
-              {errors.confirmPassword && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.confirmPassword.message}
-                </p>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full text-white px-4 py-2 rounded transition-all duration-200 ${
-                loading ? "bg-[#c1aa77]/50 cursor-not-allowed" : "bg-[#c1aa77]"
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div className="mb-8 relative">
+            <label className="block text-[10px] tracking-[3px] uppercase text-[#c1aa77]/70 mb-2">
+              New Password
+            </label>
+            <input
+              type={showPassword ? "text" : "password"}
+              {...register("newPassword")}
+              placeholder="••••••••"
+              className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none transition-colors duration-300 pr-8 ${
+                !touchedFields.newPassword
+                  ? "border-[#c1aa77]/20 focus:border-[var(--gold)]"
+                  : errors.newPassword
+                    ? "border-red-400"
+                    : "border-[var(--gold)]"
               }`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((p) => !p)}
+              className="absolute right-0 bottom-3 text-[#f5f0e8]/30 hover:text-[var(--gold)] transition-colors"
             >
-              {loading ? "Resetting..." : "Reset Password"}
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
-          </form>
-        </div>
+            {errors.newPassword && (
+              <p className="text-red-400 text-xs mt-2 tracking-wide">
+                {errors.newPassword.message}
+              </p>
+            )}
+          </div>
+
+          <div className="mb-10 relative">
+            <label className="block text-[10px] tracking-[3px] uppercase text-[#c1aa77]/70 mb-2">
+              Confirm Password
+            </label>
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              {...register("confirmPassword")}
+              placeholder="••••••••"
+              className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none transition-colors duration-300 pr-8 ${
+                !touchedFields.confirmPassword
+                  ? "border-[#c1aa77]/20 focus:border-[var(--gold)]"
+                  : errors.confirmPassword
+                    ? "border-red-400"
+                    : "border-[var(--gold)]"
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword((p) => !p)}
+              className="absolute right-0 bottom-3 text-[#f5f0e8]/30 hover:text-[var(--gold)] transition-colors"
+            >
+              {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+            {errors.confirmPassword && (
+              <p className="text-red-400 text-xs mt-2 tracking-wide">
+                {errors.confirmPassword.message}
+              </p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full py-4 text-[var(--dark)] text-xs tracking-[4px] uppercase font-medium transition-all duration-300 ${
+              loading
+                ? "bg-[#c1aa77]/50 cursor-not-allowed"
+                : "bg-[var(--gold)] hover:bg-[var(--gold-light)]"
+            }`}
+          >
+            {loading ? "Resetting..." : "Reset Password"}
+          </button>
+        </form>
       </div>
     </div>
   );

@@ -15,11 +15,8 @@ function MyProfile() {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const profileForm = useForm({
     resolver: zodResolver(updateProfileSchema),
@@ -51,15 +48,15 @@ function MyProfile() {
           toast.error(result.message || "Failed to load profile.");
         }
       } catch (err) {
-        const message = err.response?.data?.message;
-        toast.error(message || "Something went wrong, please try again.");
+        toast.error(
+          err.response?.data?.message ||
+            "Something went wrong, please try again.",
+        );
       } finally {
         setPageLoading(false);
       }
     };
-
     fetchProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onProfileSubmit = async (data) => {
@@ -73,8 +70,10 @@ function MyProfile() {
         toast.error(result.message || "Something went wrong.");
       }
     } catch (err) {
-      const message = err.response?.data?.message;
-      toast.error(message || "Something went wrong, please try again.");
+      toast.error(
+        err.response?.data?.message ||
+          "Something went wrong, please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -91,8 +90,10 @@ function MyProfile() {
         toast.error(result.message || "Something went wrong.");
       }
     } catch (err) {
-      const message = err.response?.data?.message;
-      toast.error(message || "Something went wrong, please try again.");
+      toast.error(
+        err.response?.data?.message ||
+          "Something went wrong, please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -100,69 +101,105 @@ function MyProfile() {
 
   if (pageLoading) {
     return (
-      <div className="min-h-screen bg-[#f0eff0]">
+      <div className="min-h-screen font-jost">
+        <div
+          className="fixed inset-0 bg-cover bg-center -z-10"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1800&q=80')",
+            filter: "blur(2px)",
+          }}
+        />
+        <div className="fixed inset-0 bg-[#0d0d0d]/50 -z-10" />
         <Navbar />
-        <div className="flex justify-center items-center h-[calc(100vh-64px)]">
-          <p className="text-[#949494]">Loading...</p>
+        <div className="flex justify-center items-center h-screen">
+          <p className="text-[#f5f0e8]/30 tracking-widest uppercase text-xs">
+            Loading...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f0eff0]">
+    <div className="min-h-screen font-jost relative">
+      <div
+        className="fixed inset-0 bg-cover bg-center -z-10"
+        style={{
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1800&q=80')",
+          filter: "blur(2px)",
+        }}
+      />
+      <div className="fixed inset-0 bg-[#0d0d0d]/50 -z-10" />
+
       <Navbar />
 
-      <div className="max-w-2xl mx-auto px-4 py-10">
-        <h1 className="text-2xl font-semibold mb-6">My Account</h1>
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 py-32">
+        <div
+          className="w-full max-w-2xl bg-[#1a1a1a] border border-[#c1aa77]/10 relative"
+          style={{ boxShadow: "0 32px 80px rgba(0,0,0,0.7)" }}
+        >
+          {/* Gold corners */}
+          <div className="absolute top-0 left-0 w-14 h-14 border-t border-l border-[#c1aa77] pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-14 h-14 border-b border-r border-[#c1aa77] pointer-events-none" />
 
-        <div className="flex border-b border-gray-200 mb-6">
-          <button
-            onClick={() => setActiveTab("profile")}
-            className={`px-6 py-3 text-sm font-medium transition-colors ${
-              activeTab === "profile"
-                ? "border-b-2 border-[#c1aa77] text-[#c1aa77]"
-                : "text-[#949494] hover:text-[#c1aa77]"
-            }`}
-          >
-            My Profile
-          </button>
-          <button
-            onClick={() => setActiveTab("password")}
-            className={`px-6 py-3 text-sm font-medium transition-colors ${
-              activeTab === "password"
-                ? "border-b-2 border-[#c1aa77] text-[#c1aa77]"
-                : "text-[#949494] hover:text-[#c1aa77]"
-            }`}
-          >
-            Change Password
-          </button>
-        </div>
+          {/* Card Header */}
+          <div className="flex items-center justify-between px-14 pt-12 pb-8  border-[#c1aa77]/8">
+            <div>
+              <p className="text-[10px] tracking-[5px] uppercase text-[var(--gold)] mb-3">
+                Account
+              </p>
+              <h1 className="font-cormorant text-4xl font-light text-[var(--cream)]">
+                {user?.firstName} {user?.lastName}
+              </h1>
+            </div>
+            <div className="w-16 h-16 rounded-full border border-[#c1aa77]/30 flex items-center justify-center bg-[#c1aa77]/5">
+              <span className="font-cormorant text-2xl text-[var(--gold)]">
+                {user?.firstName?.charAt(0)}
+              </span>
+            </div>
+          </div>
 
-        {/* Tab Content */}
-        <div className="bg-white rounded-2xl shadow-sm px-8 py-6">
-          {activeTab === "profile" ? (
-            <ProfileTab
-              profileForm={profileForm}
-              isEditing={isEditing}
-              setIsEditing={setIsEditing}
-              loading={loading}
-              onProfileSubmit={onProfileSubmit}
-              logout={logout}
-            />
-          ) : (
-            <PasswordTab
-              passwordForm={passwordForm}
-              loading={loading}
-              onPasswordSubmit={onPasswordSubmit}
-              showCurrentPassword={showCurrentPassword}
-              setShowCurrentPassword={setShowCurrentPassword}
-              showNewPassword={showNewPassword}
-              setShowNewPassword={setShowNewPassword}
-              showConfirmPassword={showConfirmPassword}
-              setShowConfirmPassword={setShowConfirmPassword}
-            />
-          )}
+          {/* Tabs */}
+          <div className="flex px-14 border-[#c1aa77]/8">
+            {["profile", "password"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`py-5 mr-9 text-[10px] tracking-[3px] uppercase transition-colors duration-300 relative ${
+                  activeTab === tab
+                    ? "text-[var(--gold)]"
+                    : "text-[#f5f0e8]/30 hover:text-[#f5f0e8]/60"
+                }`}
+              >
+                {tab === "profile" ? "My Profile" : "Change Password"}
+                {activeTab === tab && (
+                  <span className="absolute bottom-0 left-0 right-0 h-px bg-[var(--gold)]" />
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Card Body */}
+          <div className="px-14 py-10">
+            {activeTab === "profile" ? (
+              <ProfileTab
+                profileForm={profileForm}
+                isEditing={isEditing}
+                setIsEditing={setIsEditing}
+                loading={loading}
+                onProfileSubmit={onProfileSubmit}
+                logout={logout}
+              />
+            ) : (
+              <PasswordTab
+                passwordForm={passwordForm}
+                loading={loading}
+                onPasswordSubmit={onPasswordSubmit}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -180,45 +217,42 @@ function ProfileTab({
   const {
     register,
     handleSubmit,
-    formState: { errors, touchedFields },
-    getValues,
+    formState: { errors },
     reset,
   } = profileForm;
 
-  const getFieldBorderColor = (fieldName) => {
-    const value = getValues(fieldName);
-    if (errors[fieldName]) return "border-red-500";
-    if (touchedFields[fieldName] && value) return "border-green-500";
-    if (!isEditing) return "border-gray-200";
-    return "border-[#e7b965]";
-  };
+  const fields = [
+    { name: "firstName", label: "First Name" },
+    { name: "lastName", label: "Last Name" },
+    { name: "country", label: "Country" },
+    { name: "city", label: "City" },
+    { name: "street", label: "Street" },
+    { name: "state", label: "State" },
+    { name: "zipCode", label: "Zip Code" },
+  ];
 
   return (
-    <form onSubmit={handleSubmit(onProfileSubmit)}>
-      <div className="grid grid-cols-2 gap-4">
-        {[
-          { name: "firstName", label: "First Name" },
-          { name: "lastName", label: "Last Name" },
-          { name: "country", label: "Country" },
-          { name: "city", label: "City" },
-          { name: "street", label: "Street" },
-          { name: "state", label: "State" },
-          { name: "zipCode", label: "Zip Code" },
-        ].map(({ name, label }) => (
-          <div key={name} className="mb-3">
-            <label className="block mb-1 text-sm font-medium text-[#949494]">
+    <form onSubmit={handleSubmit(onProfileSubmit)} noValidate>
+      <div className="grid grid-cols-2 gap-x-8 gap-y-8 mb-10">
+        {fields.map(({ name, label }) => (
+          <div key={name}>
+            <label className="block text-[10px] tracking-[3px] uppercase text-[#c1aa77]/60 mb-2">
               {label}
             </label>
             <input
               type="text"
               {...register(name)}
               disabled={!isEditing}
-              className={`border p-2 w-full rounded transition-all duration-200 ${getFieldBorderColor(name)} ${
-                !isEditing ? "bg-gray-50 cursor-default" : "bg-white"
+              className={`w-full bg-transparent border-b pb-3 text-[var(--cream)] text-sm outline-none transition-colors duration-300 ${
+                !isEditing
+                  ? "border-[#c1aa77]/50 text-[#f5f0e8]/50 cursor-default"
+                  : errors[name]
+                    ? "border-red-400"
+                    : "border-[#c1aa77]/50 focus:border-[var(--gold)]"
               }`}
             />
             {errors[name] && (
-              <p className="text-red-500 text-sm mt-1">
+              <p className="text-red-400 text-xs mt-2 tracking-wide">
                 {errors[name].message}
               </p>
             )}
@@ -227,12 +261,14 @@ function ProfileTab({
       </div>
 
       {isEditing ? (
-        <div className="flex gap-3 mt-4">
+        <div className="flex gap-4">
           <button
             type="submit"
             disabled={loading}
-            className={`flex-1 text-white py-2 rounded transition-all duration-200 ${
-              loading ? "bg-[#c1aa77]/50 cursor-not-allowed" : "bg-[#c1aa77]"
+            className={`flex-1 py-4 text-[var(--dark)] text-xs tracking-[4px] uppercase font-medium transition-all duration-300 ${
+              loading
+                ? "bg-[#c1aa77]/50 cursor-not-allowed"
+                : "bg-[var(--gold)] hover:bg-[var(--gold-light)]"
             }`}
           >
             {loading ? "Saving..." : "Save Changes"}
@@ -243,24 +279,24 @@ function ProfileTab({
               reset();
               setIsEditing(false);
             }}
-            className="flex-1 bg-gray-200 text-gray-700 py-2 rounded transition-all duration-200 hover:bg-gray-300"
+            className="flex-1 py-4 border border-[#c1aa77]/30 hover:border-[var(--gold)] text-[var(--gold)] text-xs tracking-[4px] uppercase transition-all duration-300"
           >
             Cancel
           </button>
         </div>
       ) : (
-        <div className="flex gap-3 mt-4">
+        <div className="flex gap-4">
           <button
             type="button"
             onClick={() => setIsEditing(true)}
-            className="flex-1 bg-[#c1aa77] text-white py-2 rounded transition-all duration-200 hover:bg-[#c1aa77]/80"
+            className="flex-1 py-4 bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[var(--dark)] text-xs tracking-[4px] uppercase font-medium transition-all duration-300"
           >
-            Edit
+            Edit Profile
           </button>
           <button
             type="button"
             onClick={logout}
-            className="flex-1 bg-red-500 text-white py-2 rounded transition-all duration-200 hover:bg-red-600"
+            className="flex-1 py-4 border border-red-400/30 hover:border-red-400 text-red-400 text-xs tracking-[4px] uppercase transition-all duration-300"
           >
             Logout
           </button>
@@ -269,111 +305,80 @@ function ProfileTab({
     </form>
   );
 }
-function PasswordTab({
-  passwordForm,
-  loading,
-  onPasswordSubmit,
-  showCurrentPassword,
-  setShowCurrentPassword,
-  showNewPassword,
-  setShowNewPassword,
-  showConfirmPassword,
-  setShowConfirmPassword,
-}) {
+
+function PasswordTab({ passwordForm, loading, onPasswordSubmit }) {
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
   const {
     register,
     handleSubmit,
-    formState: { errors, touchedFields },
+    formState: { errors },
   } = passwordForm;
 
-  const getPasswordBorderColor = (fieldName) => {
-    if (errors[fieldName]) return "border-red-500";
-    if (touchedFields[fieldName]) return "border-green-500";
-    return "border-[#e7b965]";
-  };
+  const fields = [
+    {
+      name: "currentPassword",
+      label: "Current Password",
+      show: showCurrent,
+      setShow: setShowCurrent,
+    },
+    {
+      name: "newPassword",
+      label: "New Password",
+      show: showNew,
+      setShow: setShowNew,
+    },
+    {
+      name: "confirmNewPassword",
+      label: "Confirm New Password",
+      show: showConfirm,
+      setShow: setShowConfirm,
+    },
+  ];
 
   return (
-    <form onSubmit={handleSubmit(onPasswordSubmit)}>
-      <div className="mb-3">
-        <label className="block mb-1 text-sm font-medium text-[#949494]">
-          Current Password
-        </label>
-        <div className="relative">
-          <input
-            type={showCurrentPassword ? "text" : "password"}
-            {...register("currentPassword")}
-            className={`border p-2 w-full rounded transition-all duration-200 pr-10 ${getPasswordBorderColor("currentPassword")}`}
-          />
-          <button
-            type="button"
-            onClick={() => setShowCurrentPassword((prev) => !prev)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
-          >
-            {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
-        </div>
-        {errors.currentPassword && (
-          <p className="text-red-500 text-sm mt-1">
-            {errors.currentPassword.message}
-          </p>
-        )}
-      </div>
-
-      <div className="mb-3">
-        <label className="block mb-1 text-sm font-medium text-[#949494]">
-          New Password
-        </label>
-        <div className="relative">
-          <input
-            type={showNewPassword ? "text" : "password"}
-            {...register("newPassword")}
-            className={`border p-2 w-full rounded transition-all duration-200 pr-10 ${getPasswordBorderColor("newPassword")}`}
-          />
-          <button
-            type="button"
-            onClick={() => setShowNewPassword((prev) => !prev)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
-          >
-            {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
-        </div>
-        {errors.newPassword && (
-          <p className="text-red-500 text-sm mt-1">
-            {errors.newPassword.message}
-          </p>
-        )}
-      </div>
-
-      <div className="mb-4">
-        <label className="block mb-1 text-sm font-medium text-[#949494]">
-          Confirm New Password
-        </label>
-        <div className="relative">
-          <input
-            type={showConfirmPassword ? "text" : "password"}
-            {...register("confirmNewPassword")}
-            className={`border p-2 w-full rounded transition-all duration-200 pr-10 ${getPasswordBorderColor("confirmNewPassword")}`}
-          />
-          <button
-            type="button"
-            onClick={() => setShowConfirmPassword((prev) => !prev)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
-          >
-            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
-        </div>
-        {errors.confirmNewPassword && (
-          <p className="text-red-500 text-sm mt-1">
-            {errors.confirmNewPassword.message}
-          </p>
-        )}
+    <form onSubmit={handleSubmit(onPasswordSubmit)} noValidate>
+      <div className="flex flex-col gap-8 mb-10">
+        {fields.map(({ name, label, show, setShow }) => (
+          <div key={name} className="relative">
+            <label className="block text-[10px] tracking-[3px] uppercase text-[#c1aa77]/60 mb-2">
+              {label}
+            </label>
+            <input
+              type={show ? "text" : "password"}
+              {...register(name)}
+              placeholder="••••••••"
+              className={`w-full bg-transparent border-b pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none transition-colors duration-300 pr-8 ${
+                errors[name]
+                  ? "border-red-400"
+                  : "border-[#c1aa77]/20 focus:border-[var(--gold)]"
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => setShow((prev) => !prev)}
+              className="absolute right-0 bottom-3 text-[#f5f0e8]/30 hover:text-[var(--gold)] transition-colors"
+            >
+              {show ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+            {errors[name] && (
+              <p className="text-red-400 text-xs mt-2 tracking-wide">
+                {errors[name].message}
+              </p>
+            )}
+          </div>
+        ))}
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        className={`w-full text-white py-2 rounded transition-all duration-200 ${
-          loading ? "bg-[#c1aa77]/50 cursor-not-allowed" : "bg-[#c1aa77]"
+        className={`w-full py-4 text-[var(--dark)] text-xs tracking-[4px] uppercase font-medium transition-all duration-300 ${
+          loading
+            ? "bg-[#c1aa77]/50 cursor-not-allowed"
+            : "bg-[var(--gold)] hover:bg-[var(--gold-light)]"
         }`}
       >
         {loading ? "Changing..." : "Change Password"}
@@ -381,4 +386,5 @@ function PasswordTab({
     </form>
   );
 }
+
 export default MyProfile;
