@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Heart, User } from "lucide-react";
+import { Heart } from "lucide-react";
+import useAuth from "../../hooks/useAuth";
 
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const { user } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 80);
@@ -32,7 +34,7 @@ function Navbar() {
       <div className="flex items-center gap-10">
         {[
           { to: "/", label: "Home" },
-          { to: "/properties", label: "Properties" },
+          ...(user ? [{ to: "/dashboard", label: "Dashboard" }] : []),
         ].map(({ to, label }) => (
           <Link
             key={to}
@@ -61,12 +63,22 @@ function Navbar() {
         >
           <Heart size={20} />
         </Link>
-        <Link
-          to="/profile"
-          className="text-[#f5f0e8]/50 hover:text-[var(--gold)] transition-colors duration-300"
-        >
-          <User size={20} />
-        </Link>
+
+        {user ? (
+          <Link
+            to="/profile"
+            className="w-9 h-9 rounded-full bg-[var(--gold)] text-[var(--dark)] flex items-center justify-center text-sm font-medium tracking-wider hover:bg-[var(--gold-light)] transition-colors duration-300"
+          >
+            {user?.firstName?.charAt(0).toUpperCase() ?? "?"}
+          </Link>
+        ) : (
+          <Link
+            to="/login"
+            className="text-[11px] tracking-[3px] uppercase border border-[#c1aa77]/40 text-[var(--gold)] hover:bg-[var(--gold)] hover:text-[var(--dark)] px-4 py-2 transition-all duration-300"
+          >
+            Sign In
+          </Link>
+        )}
       </div>
     </nav>
   );

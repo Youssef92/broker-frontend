@@ -28,15 +28,8 @@ export const registerSchema = z
         "Phone must be Egyptian number (010,011,012,015) and 8 digits",
       ),
     address: z.object({
-      country: z
-        .string()
-        .trim()
-        .min(2, "Country must be at least 2 characters")
-        .regex(/^[A-Za-z]+$/, "Country must contain letters only"),
-      city: z
-        .string()
-        .min(2, "City must be at least 2 characters")
-        .regex(/^[A-Za-z]+$/, "City must contain letters only"),
+      country: z.string().min(1, "Country is required."),
+      city: z.string().min(1, "City is required."),
       street: z
         .string()
         .trim()
@@ -46,14 +39,7 @@ export const registerSchema = z
           (val) => !val || /^[A-Za-z0-9\s]+$/.test(val),
           "Street can contain letters and numbers",
         ),
-      state: z
-        .string()
-        .trim()
-        .min(1, "State is required")
-        .refine(
-          (val) => /^[A-Za-z\s]+$/.test(val),
-          "State must contain letters only",
-        ),
+      state: z.string().min(1, "State is required."),
       zipCode: z
         .string()
         .trim()

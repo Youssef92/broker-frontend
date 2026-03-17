@@ -1,35 +1,11 @@
-import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { confirmEmail } from "../../services/authService";
 
 function ConfirmEmail() {
-  const [status, setStatus] = useState("loading");
-  const [message, setMessage] = useState("");
-
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const userId = searchParams.get("UserId");
-  const token = searchParams.get("Token");
-  const clientId = searchParams.get("ClientId");
-
-  useEffect(() => {
-    const verify = async () => {
-      try {
-        await confirmEmail({ userId, token, clientId });
-        setStatus("success");
-        setMessage("Your email has been confirmed successfully!");
-      } catch (err) {
-        setStatus("error");
-        setMessage(
-          err.response?.data?.message ||
-            "Something went wrong, please try again.",
-        );
-      }
-    };
-    verify();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const status = searchParams.get("status"); // "success" or anything else
+  const message = searchParams.get("message") || "Something went wrong.";
 
   return (
     <div className="min-h-screen flex font-jost bg-[var(--dark)]">
@@ -61,21 +37,7 @@ function ConfirmEmail() {
       </div>
 
       <div className="w-full md:w-[480px] shrink-0 bg-[var(--dark-2)] flex flex-col justify-center px-14 py-16 border-l border-[#c1aa77]/10 text-center">
-        {status === "loading" && (
-          <>
-            <p className="text-[10px] tracking-[5px] uppercase text-[var(--gold)] mb-3">
-              Please Wait
-            </p>
-            <h2 className="font-cormorant text-4xl font-normal text-[var(--cream)] mb-4">
-              Confirming...
-            </h2>
-            <p className="text-[#f5f0e8]/30 text-sm tracking-wide">
-              Verifying your email address
-            </p>
-          </>
-        )}
-
-        {status === "success" && (
+        {status === "success" ? (
           <>
             <div className="w-16 h-16 rounded-full border border-[var(--gold)]/30 flex items-center justify-center mx-auto mb-8">
               <span className="text-[var(--gold)] text-2xl">✓</span>
@@ -87,7 +49,7 @@ function ConfirmEmail() {
               Email Confirmed!
             </h2>
             <p className="text-[#f5f0e8]/40 text-sm mb-12 tracking-wide">
-              {message}
+              Your email has been confirmed successfully!
             </p>
             <button
               onClick={() => navigate("/login")}
@@ -96,9 +58,7 @@ function ConfirmEmail() {
               Sign In
             </button>
           </>
-        )}
-
-        {status === "error" && (
+        ) : (
           <>
             <div className="w-16 h-16 rounded-full border border-red-400/30 flex items-center justify-center mx-auto mb-8">
               <span className="text-red-400 text-2xl">✕</span>

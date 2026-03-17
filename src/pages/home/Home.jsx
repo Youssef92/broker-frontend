@@ -6,14 +6,14 @@ import { getProperties } from "../../services/propertyService";
 
 const PROPERTY_TYPES = [
   { value: "", label: "All Types" },
-  { value: 1, label: "Apartment" },
-  { value: 2, label: "Villa" },
+  { value: "Villa", label: "Villa" },
+  { value: "Apartment", label: "Apartment" },
 ];
 
 const LISTING_INTENTS = [
   { value: "", label: "All" },
-  { value: 1, label: "Sale" },
-  { value: 3, label: "Rent" },
+  { value: "Sale", label: "Sale" },
+  { value: "Rent", label: "Rent" },
 ];
 
 const PAGE_SIZE = 10;
