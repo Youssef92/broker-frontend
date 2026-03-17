@@ -11,7 +11,7 @@ import {
   resendPayoutOtp,
   addPayoutMethod,
 } from "../../services/payoutService";
-import vodafoneLogo from "../../assets/providers/vodafone-cash.png";
+import vodafoneLogo from "../../assets/providers/Vodafone-Cash.png";
 import orangeLogo from "../../assets/providers/Orange-Money.png";
 import etisalatLogo from "../../assets/providers/Etisalat-Cash.png";
 import weLogo from "../../assets/providers/We-Cash.png";
