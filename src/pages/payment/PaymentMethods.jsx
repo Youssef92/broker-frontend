@@ -36,6 +36,7 @@ function PaymentMethods() {
     resolver: zodResolver(paymentMethodBillingSchema),
     mode: "onSubmit",
     defaultValues: {
+      currency: "EGP",
       paymentMethod: "",
       firstName: "",
       lastName: "",
@@ -130,6 +131,7 @@ function PaymentMethods() {
         if (profileResult.succeeded) {
           const p = profileResult.data;
           reset({
+            currency: "EGP",
             paymentMethod: "",
             firstName: p.firstName || "",
             lastName: p.lastName || "",
@@ -156,6 +158,7 @@ function PaymentMethods() {
     setSubmitting(true);
     try {
       const result = await addPaymentMethod({
+        currency: data.currency,
         idempotencyKey: crypto.randomUUID(),
         paymentMethod: Number(data.paymentMethod),
         billingData: {
@@ -264,6 +267,21 @@ function PaymentMethods() {
                       {errors.paymentMethod.message}
                     </p>
                   )}
+                </div>
+
+                {/* Currency */}
+                <div>
+                  <label className="block text-[10px] tracking-[3px] uppercase text-[#c1aa77]/60 mb-2">
+                    Currency
+                  </label>
+                  <select
+                    {...register("currency")}
+                    className="w-full bg-transparent border-b border-[#c1aa77]/20 pb-2 text-[var(--cream)] text-sm outline-none focus:border-[var(--gold)] transition-colors duration-300"
+                  >
+                    <option value="EGP" className="bg-[#1a1a1a]">
+                      EGP — Egyptian Pound
+                    </option>
+                  </select>
                 </div>
 
                 {/* Billing Information label */}

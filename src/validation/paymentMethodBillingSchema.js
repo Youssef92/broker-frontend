@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const paymentMethodBillingSchema = z.object({
+  currency: z.string().min(1, "Currency is required."),
   paymentMethod: z.string().min(1, "Please select a payment method type."),
   firstName: z
     .string()

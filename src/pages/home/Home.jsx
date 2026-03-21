@@ -3,17 +3,18 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import Navbar from "../../components/layout/Navbar";
 import { getProperties } from "../../services/propertyService";
+import { registerDeviceForNotifications } from "../../services/notificationService";
 
 const PROPERTY_TYPES = [
   { value: "", label: "All Types" },
-  { value: "Villa", label: "Villa" },
   { value: "Apartment", label: "Apartment" },
+  { value: "Villa", label: "Villa" },
 ];
 
 const LISTING_INTENTS = [
   { value: "", label: "All" },
-  { value: "Sale", label: "Sale" },
-  { value: "Rent", label: "Rent" },
+  { value: "ForSale", label: "Sale" },
+  { value: "ForRent", label: "Rent" },
 ];
 
 const PAGE_SIZE = 10;
@@ -63,6 +64,7 @@ function Home() {
 
   useEffect(() => {
     fetchProperties(1);
+    registerDeviceForNotifications();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -279,9 +281,9 @@ function Home() {
 
                     {/* Image */}
                     <div className="w-56 h-40 shrink-0 overflow-hidden">
-                      {property.primaryFileUrl ? (
+                      {property.primaryImageUrl ? (
                         <img
-                          src={property.primaryFileUrl}
+                          src={property.primaryImageUrl}
                           alt={property.title}
                           className="w-full h-full object-cover brightness-85 group-hover:brightness-100 group-hover:scale-105 transition-all duration-400"
                         />
@@ -303,14 +305,36 @@ function Home() {
                           {property.title}
                         </h3>
                       </div>
-                      <div className="flex gap-6 text-xs text-[#f5f0e8]/40 tracking-wide">
-                        {property.bedrooms != null && (
-                          <span>🛏 {property.bedrooms} Beds</span>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex gap-6 text-xs text-[#f5f0e8]/40 tracking-wide">
+                          {property.bedrooms != null && (
+                            <span>🛏 {property.bedrooms} Beds</span>
+                          )}
+                          {property.bathrooms != null && (
+                            <span>🚿 {property.bathrooms} Baths</span>
+                          )}
+                          <span>📐 {property.areaSize} m²</span>
+                        </div>
+                        {(property.minNights > 1 ||
+                          property.discountPercentagePerWeek ||
+                          property.discountPercentagePerMonth) && (
+                          <div className="flex gap-4 text-xs text-[#c1aa77]/50 tracking-wide">
+                            {property.minNights > 1 && (
+                              <span>🌙 Min {property.minNights} nights</span>
+                            )}
+                            {property.discountPercentagePerWeek && (
+                              <span>
+                                🏷 {property.discountPercentagePerWeek}% weekly
+                              </span>
+                            )}
+                            {property.discountPercentagePerMonth && (
+                              <span>
+                                🏷 {property.discountPercentagePerMonth}%
+                                monthly
+                              </span>
+                            )}
+                          </div>
                         )}
-                        {property.bathrooms != null && (
-                          <span>🚿 {property.bathrooms} Baths</span>
-                        )}
-                        <span>📐 {property.areaSize} m²</span>
                       </div>
                     </div>
 
