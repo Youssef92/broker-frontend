@@ -8,7 +8,7 @@ function CheckoutResult() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const providerRef = searchParams.get("providerRef");
+  const providerRef = searchParams.get("orderRef");
 
   const [status, setStatus] = useState(providerRef ? "loading" : "failed");
   const [message, setMessage] = useState(
