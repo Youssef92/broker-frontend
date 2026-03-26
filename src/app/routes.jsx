@@ -8,8 +8,10 @@ import ResendConfirmation from "../pages/auth/ResendConfirmation";
 import MyProfile from "../pages/profile/MyProfile";
 import UserProfile from "../pages/profile/UserProfile";
 import ProtectedRoute from "../components/common/ProtectedRoute";
+import SuperAdminRoute from "../components/common/SuperAdminRoute";
 import Home from "../pages/home/Home";
 import CreateListing from "../pages/landlord/CreateListing";
+import RolesManagement from "../pages/admin/RolesManagement";
 
 function AppRoutes() {
   return (
@@ -36,6 +38,14 @@ function AppRoutes() {
           // <ProtectedRoute>
           <CreateListing />
           // </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/roles"
+        element={
+          <SuperAdminRoute>
+            <RolesManagement />
+          </SuperAdminRoute>
         }
       />
     </Routes>

@@ -160,9 +160,8 @@ function Register() {
           {[1, 2, 3].map((s) => (
             <div
               key={s}
-              className={`h-[2px] flex-1 transition-all duration-300 ${
-                s <= step ? "bg-[var(--gold)]" : "bg-[#c1aa77]/20"
-              }`}
+              className={`h-[2px] flex-1 transition-all duration-300 ${s <= step ? "bg-[var(--gold)]" : "bg-[#c1aa77]/20"
+                }`}
             />
           ))}
         </div>
@@ -239,11 +238,10 @@ function StepOne({ next }) {
           <input
             type={field === "email" ? "email" : "text"}
             {...register(field)}
-            className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none transition-colors duration-300 ${
-              errors[field]
+            className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none transition-colors duration-300 ${errors[field]
                 ? "border-red-400"
                 : "border-[#c1aa77]/20 focus:border-[var(--gold)]"
-            }`}
+              }`}
           />
 
           {errors[field] && (
@@ -356,10 +354,9 @@ function StepTwo({ next, back }) {
   };
 
   const selectClass = (hasError) =>
-    `w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm outline-none transition-colors duration-300 cursor-pointer ${
-      hasError
-        ? "border-red-400"
-        : "border-[#c1aa77]/20 focus:border-[var(--gold)]"
+    `w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm outline-none transition-colors duration-300 cursor-pointer ${hasError
+      ? "border-red-400"
+      : "border-[#c1aa77]/20 focus:border-[var(--gold)]"
     }`;
 
   return (
@@ -453,11 +450,10 @@ function StepTwo({ next, back }) {
           <input
             type="text"
             {...register(`address.${field}`)}
-            className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none transition-colors duration-300 ${
-              errors.address?.[field]
+            className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none transition-colors duration-300 ${errors.address?.[field]
                 ? "border-red-400"
                 : "border-[#c1aa77]/20 focus:border-[var(--gold)]"
-            }`}
+              }`}
           />
           {errors.address?.[field] && (
             <p className="text-red-400 text-xs mt-2 tracking-wide">
@@ -510,13 +506,12 @@ function StepThree({ back, loading }) {
           type={showPassword ? "text" : "password"}
           {...register("password")}
           placeholder="••••••••"
-          className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none transition-colors duration-300 pr-8 ${
-            !touchedFields.password
+          className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none transition-colors duration-300 pr-8 ${!touchedFields.password
               ? "border-[#c1aa77]/20 focus:border-[var(--gold)]"
               : errors.password
                 ? "border-red-400"
                 : "border-[var(--gold)]"
-          }`}
+            }`}
         />
         <button
           type="button"
@@ -540,13 +535,12 @@ function StepThree({ back, loading }) {
           type={showConfirmPassword ? "text" : "password"}
           {...register("confirmPassword")}
           placeholder="••••••••"
-          className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none transition-colors duration-300 pr-8 ${
-            !touchedFields.confirmPassword
+          className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none transition-colors duration-300 pr-8 ${!touchedFields.confirmPassword
               ? "border-[#c1aa77]/20 focus:border-[var(--gold)]"
               : errors.confirmPassword
                 ? "border-red-400"
                 : "border-[var(--gold)]"
-          }`}
+            }`}
         />
         <button
           type="button"
@@ -573,11 +567,10 @@ function StepThree({ back, loading }) {
         <button
           type="submit"
           disabled={loading}
-          className={`flex-1 py-4 text-[var(--dark)] text-xs tracking-[4px] uppercase font-medium transition-all duration-300 ${
-            loading
+          className={`flex-1 py-4 text-[var(--dark)] text-xs tracking-[4px] uppercase font-medium transition-all duration-300 ${loading
               ? "bg-[#c1aa77]/50 cursor-not-allowed"
               : "bg-[var(--gold)] hover:bg-[var(--gold-light)]"
-          }`}
+            }`}
         >
           {loading ? "Creating..." : "Create Account"}
         </button>
