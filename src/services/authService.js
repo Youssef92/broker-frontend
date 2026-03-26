@@ -34,17 +34,6 @@ export const resetPassword = async (data) => {
   return response.data;
 };
 
-export const confirmEmail = async ({ userId, token, clientId }) => {
-  const response = await axiosInstance.get(`${AUTH_BASE}/confirm-email`, {
-    params: {
-      UserId: userId,
-      Token: token,
-      ClientId: clientId,
-    },
-  });
-  return response.data;
-};
-
 export const resendConfirmation = async (email) => {
   const response = await axiosInstance.post(
     `${AUTH_BASE}/resend-confirmation`,

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 // eslint-disable-next-line no-unused-vars
@@ -11,11 +11,13 @@ import {
   createPropertyListing,
   uploadPropertyMedia,
   publishPropertyListing,
+  getManagePropertyDetails,
 } from "../../services/propertyService";
 // import useAuth from "../../hooks/useAuth";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { getPayoutMethods } from "../../services/payoutService";
 
 // ---- Leaflet icon fix ----
 delete L.Icon.Default.prototype._getIconUrl;
@@ -45,6 +47,24 @@ function CreateListing() {
   const [loading, setLoading] = useState(false);
   const [listingId, setListingId] = useState(null);
   const [images, setImages] = useState([]);
+  const [hasPayoutMethod, setHasPayoutMethod] = useState(null);
+  const [processing, setProcessing] = useState(false);
+
+  useEffect(() => {
+    const checkPayout = async () => {
+      try {
+        const result = await getPayoutMethods();
+        if (result.succeeded) {
+          setHasPayoutMethod(result.data.length > 0);
+        } else {
+          setHasPayoutMethod(false);
+        }
+      } catch {
+        setHasPayoutMethod(false);
+      }
+    };
+    checkPayout();
+  }, []);
 
   const methods = useForm({
     resolver: zodResolver(createListingSchema),
@@ -95,7 +115,7 @@ function CreateListing() {
       };
       const result = await createPropertyListing(payload);
       if (result.succeeded) {
-        setListingId(result.data);
+        setListingId(result.data.propertyId);
         setStage(1);
       } else {
         toast.error(result.message || "Failed to create listing.");
@@ -119,44 +139,71 @@ function CreateListing() {
     }
     setLoading(true);
     try {
-      const results = await Promise.all(
-        images.map(async (img, i) => {
-          const formData = new FormData();
-          formData.append("PropertyListingId", listingId);
-          formData.append("File", img.file);
-          formData.append("Type", 1);
-          formData.append("IsPrimary", img.isPrimary);
-          formData.append("SortOrder", i + 1);
-          try {
-            const res = await uploadPropertyMedia(listingId, formData);
-            return {
-              index: i,
-              status: res.succeeded ? "accepted" : "rejected",
-              rejectionReason: res.succeeded ? null : res.message,
-            };
-          } catch (err) {
-            return {
-              index: i,
-              status: "rejected",
-              rejectionReason: err.response?.data?.message || "Upload failed.",
-            };
-          }
-        }),
-      );
+      for (let i = 0; i < images.length; i++) {
+        const img = images[i];
+        const formData = new FormData();
+        formData.append("PropertyListingId", listingId);
+        formData.append("File", img.file);
+        formData.append("Type", 1);
+        formData.append("IsPrimary", img.isPrimary);
+        formData.append("SortOrder", i + 1);
+        try {
+          await uploadPropertyMedia(listingId, formData);
+        } catch {
+          // continue uploading remaining images
+        }
+        if (i < images.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        }
+      }
 
+      // Poll /manage until all images have a final status
+      setLoading(false);
+      setProcessing(true);
+      let mediaList = [];
+      while (true) {
+        const manageResult = await getManagePropertyDetails(listingId);
+        if (!manageResult.succeeded) {
+          toast.error("Could not verify image status.");
+          return;
+        }
+        mediaList = manageResult.data.media || [];
+        const FINAL_STATUSES = ["Completed", "Rejected", "Accepted"];
+        const stillPending = mediaList.some(
+          (m) => !FINAL_STATUSES.includes(m.processingStatus),
+        );
+        if (!stillPending) break;
+        await new Promise((resolve) => setTimeout(resolve, 30000));
+      }
+      setProcessing(false);
+
+      // Map results back to images by sortOrder
       setImages((prev) =>
         prev.map((img, i) => {
-          const result = results.find((r) => r.index === i);
+          const media = mediaList.find((m) => m.sortOrder === i + 1);
+          if (!media)
+            return {
+              ...img,
+              status: "rejected",
+              rejectionReason: "Not found.",
+            };
+          const accepted =
+            media.processingStatus === "Completed" ||
+            media.processingStatus === "Accepted";
           return {
             ...img,
-            status: result.status,
-            rejectionReason: result.rejectionReason,
+            status: accepted ? "accepted" : "rejected",
+            rejectionReason: accepted
+              ? null
+              : media.rejectionReason || "Image was rejected.",
           };
         }),
       );
 
-      const acceptedCount = results.filter(
-        (r) => r.status === "accepted",
+      const acceptedCount = mediaList.filter(
+        (m) =>
+          m.processingStatus === "Completed" ||
+          m.processingStatus === "Accepted",
       ).length;
       if (acceptedCount === 0) {
         toast.error(
@@ -164,18 +211,17 @@ function CreateListing() {
         );
         return;
       }
-      if (acceptedCount === 1) {
-        const acceptedIndex = results.find(
-          (r) => r.status === "accepted",
-        ).index;
-        setImages((prev) =>
-          prev.map((img, i) => ({ ...img, isPrimary: i === acceptedIndex })),
-        );
-      }
       toast.success(`${acceptedCount} image(s) accepted.`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Something went wrong.");
     } finally {
       setLoading(false);
+      setProcessing(false);
     }
+  };
+
+  const onContinueToPublish = () => {
+    setStage(2);
   };
 
   const onPublish = async () => {
@@ -192,6 +238,16 @@ function CreateListing() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const onReset = () => {
+    setStage(0);
+    setStep(1);
+    setDirection(1);
+    setListingId(null);
+    setImages([]);
+    setProcessing(false);
+    methods.reset();
   };
 
   return (
@@ -257,68 +313,102 @@ function CreateListing() {
             <div className="absolute bottom-0 right-0 w-14 h-14 border-b border-r border-[#c1aa77] pointer-events-none" />
 
             <div className="px-14 py-12">
-              {stage === 0 && (
-                <FormProvider {...methods}>
-                  <form
-                    onSubmit={methods.handleSubmit(onCreateDraft)}
-                    noValidate
+              {hasPayoutMethod === null ? (
+                <p className="text-[#f5f0e8]/30 tracking-widest uppercase text-xs text-center py-8">
+                  Loading...
+                </p>
+              ) : !hasPayoutMethod ? (
+                <div className="text-center py-8">
+                  <div className="w-14 h-14 border border-[#c1aa77]/30 flex items-center justify-center mx-auto mb-6">
+                    <span className="text-[var(--gold)] text-xl">!</span>
+                  </div>
+                  <p className="text-[10px] tracking-[5px] uppercase text-[var(--gold)] mb-3">
+                    Action Required
+                  </p>
+                  <h2 className="font-cormorant text-3xl font-light text-[var(--cream)] mb-4">
+                    No Payout Method Found
+                  </h2>
+                  <p className="text-sm text-[#f5f0e8]/40 tracking-wide mb-8">
+                    You need to add a payout method before you can list a
+                    property.
+                  </p>
+                  <a
+                    href="/payout-methods"
+                    className="inline-block px-10 py-4 bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[var(--dark)] text-xs tracking-[4px] uppercase font-medium transition-all duration-300"
                   >
-                    <AnimatePresence mode="wait" custom={direction}>
-                      <motion.div
-                        key={step}
-                        custom={direction}
-                        variants={variants}
-                        initial="enter"
-                        animate="center"
-                        exit="exit"
-                        transition={{ duration: 0.3 }}
+                    Add Payout Method →
+                  </a>
+                </div>
+              ) : (
+                <>
+                  {stage === 0 && (
+                    <FormProvider {...methods}>
+                      <form
+                        onSubmit={methods.handleSubmit(onCreateDraft)}
+                        noValidate
                       >
-                        {step === 1 && (
-                          <StepBasicInfo
-                            next={() => {
-                              setDirection(1);
-                              setStep(2);
-                            }}
-                          />
-                        )}
-                        {step === 2 && (
-                          <StepLocation
-                            next={() => {
-                              setDirection(1);
-                              setStep(3);
-                            }}
-                            back={() => {
-                              setDirection(-1);
-                              setStep(1);
-                            }}
-                          />
-                        )}
-                        {step === 3 && (
-                          <StepPricing
-                            back={() => {
-                              setDirection(-1);
-                              setStep(2);
-                            }}
-                            loading={loading}
-                          />
-                        )}
-                      </motion.div>
-                    </AnimatePresence>
-                  </form>
-                </FormProvider>
+                        <AnimatePresence mode="wait" custom={direction}>
+                          <motion.div
+                            key={step}
+                            custom={direction}
+                            variants={variants}
+                            initial="enter"
+                            animate="center"
+                            exit="exit"
+                            transition={{ duration: 0.3 }}
+                          >
+                            {step === 1 && (
+                              <StepBasicInfo
+                                next={() => {
+                                  setDirection(1);
+                                  setStep(2);
+                                }}
+                              />
+                            )}
+                            {step === 2 && (
+                              <StepLocation
+                                next={() => {
+                                  setDirection(1);
+                                  setStep(3);
+                                }}
+                                back={() => {
+                                  setDirection(-1);
+                                  setStep(1);
+                                }}
+                              />
+                            )}
+                            {step === 3 && (
+                              <StepPricing
+                                back={() => {
+                                  setDirection(-1);
+                                  setStep(2);
+                                }}
+                                loading={loading}
+                              />
+                            )}
+                          </motion.div>
+                        </AnimatePresence>
+                      </form>
+                    </FormProvider>
+                  )}
+                  {stage === 1 && (
+                    <StageUploadImages
+                      images={images}
+                      setImages={setImages}
+                      onNext={onUploadImages}
+                      onContinue={onContinueToPublish}
+                      loading={loading}
+                      processing={processing}
+                    />
+                  )}
+                  {stage === 2 && (
+                    <StagePublish onPublish={onPublish} loading={loading} />
+                  )}
+                  {stage === 3 && (
+                    <StageSuccess navigate={navigate} onReset={onReset} />
+                  )}
+                </>
               )}
-              {stage === 1 && (
-                <StageUploadImages
-                  images={images}
-                  setImages={setImages}
-                  onNext={onUploadImages}
-                  loading={loading}
-                />
-              )}
-              {stage === 2 && (
-                <StagePublish onPublish={onPublish} loading={loading} />
-              )}
-              {stage === 3 && <StageSuccess navigate={navigate} />}
             </div>
           </div>
         </div>
@@ -613,8 +703,9 @@ function StepLocation({ next, back }) {
             </label>
             <input
               type="text"
+              disabled={true}
               {...register(name)}
-              className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none transition-colors duration-300 ${
+              className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none transition-colors duration-300 cursor-not-allowed ${
                 errors[name]
                   ? "border-red-400"
                   : "border-[#c1aa77]/20 focus:border-[var(--gold)]"
@@ -647,8 +738,9 @@ function StepLocation({ next, back }) {
         </label>
         <input
           type="text"
+          disabled={true}
           {...register("formattedAddress")}
-          className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none transition-colors duration-300 ${
+          className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none transition-colors duration-300 cursor-not-allowed ${
             errors.formattedAddress
               ? "border-red-400"
               : "border-[#c1aa77]/20 focus:border-[var(--gold)]"
@@ -809,7 +901,14 @@ function StepPricing({ back, loading }) {
   );
 }
 
-function StageUploadImages({ images, setImages, onNext, loading }) {
+function StageUploadImages({
+  images,
+  setImages,
+  onNext,
+  onContinue,
+  loading,
+  processing,
+}) {
   const MAX_SIZE = 5 * 1024 * 1024;
   const MAX_COUNT = 10;
 
@@ -878,7 +977,7 @@ function StageUploadImages({ images, setImages, onNext, loading }) {
         image.
       </p>
 
-      {!uploaded && (
+      {!uploaded && !processing && (
         <>
           <label className="flex flex-col items-center justify-center w-full h-36 border border-dashed border-[#c1aa77]/30 hover:border-[var(--gold)] cursor-pointer transition-colors duration-300 mb-6">
             <span className="text-[#f5f0e8]/30 text-xs tracking-[3px] uppercase mb-2">
@@ -991,27 +1090,34 @@ function StageUploadImages({ images, setImages, onNext, loading }) {
           <button
             type="button"
             onClick={onNext}
-            disabled={loading || images.length === 0}
+            disabled={loading || processing || images.length === 0}
             className={`w-full py-4 text-[var(--dark)] text-xs tracking-[4px] uppercase font-medium transition-all duration-300 ${
-              loading || images.length === 0
+              loading || processing || images.length === 0
                 ? "bg-[#c1aa77]/50 cursor-not-allowed"
                 : "bg-[var(--gold)] hover:bg-[var(--gold-light)]"
             }`}
           >
-            {loading ? "Uploading..." : "Upload Images"}
+            {loading
+              ? "Uploading..."
+              : processing
+                ? "Processing..."
+                : "Upload Images"}
+          </button>
+        ) : hasAccepted ? (
+          <button
+            type="button"
+            onClick={onContinue}
+            className="w-full py-4 bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[var(--dark)] text-xs tracking-[4px] uppercase font-medium transition-all duration-300"
+          >
+            Continue to Publish
           </button>
         ) : (
           <button
             type="button"
-            onClick={onNext}
-            disabled={!hasAccepted}
-            className={`w-full py-4 text-[var(--dark)] text-xs tracking-[4px] uppercase font-medium transition-all duration-300 ${
-              !hasAccepted
-                ? "bg-[#c1aa77]/50 cursor-not-allowed"
-                : "bg-[var(--gold)] hover:bg-[var(--gold-light)]"
-            }`}
+            onClick={() => setImages([])}
+            className="w-full py-4 border border-[#c1aa77]/30 hover:border-[var(--gold)] text-[var(--gold)] text-xs tracking-[4px] uppercase transition-all duration-300"
           >
-            Continue to Publish
+            Try Again — Upload Different Images
           </button>
         )}
       </div>
@@ -1057,7 +1163,7 @@ function StagePublish({ onPublish, loading }) {
   );
 }
 
-function StageSuccess({ navigate }) {
+function StageSuccess({ navigate, onReset }) {
   return (
     <div className="text-center py-6">
       <div className="w-16 h-16 rounded-full border border-[var(--gold)]/30 flex items-center justify-center mx-auto mb-8">
@@ -1082,7 +1188,7 @@ function StageSuccess({ navigate }) {
         </button>
         <button
           type="button"
-          onClick={() => navigate("/create-listing")}
+          onClick={onReset}
           className="flex-1 py-4 bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[var(--dark)] text-xs tracking-[4px] uppercase font-medium transition-all duration-300"
         >
           Create Another

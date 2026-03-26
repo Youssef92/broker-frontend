@@ -12,6 +12,13 @@ import SuperAdminRoute from "../components/common/SuperAdminRoute";
 import Home from "../pages/home/Home";
 import CreateListing from "../pages/landlord/CreateListing";
 import RolesManagement from "../pages/admin/RolesManagement";
+import Dashboard from "../pages/dashboard/Dashboard";
+import PropertyDetails from "../pages/property/PropertyDetails";
+import PayoutMethods from "../pages/landlord/PayoutMethods";
+import PaymentMethods from "../pages/payment/PaymentMethods";
+import CheckoutResult from "../pages/payment/CheckoutResult";
+import ManageListing from "../pages/landlord/ManageListing";
+import UpdateListing from "../pages/landlord/UpdateListing";
 
 function AppRoutes() {
   return (
@@ -35,9 +42,51 @@ function AppRoutes() {
       <Route
         path="/create-listing"
         element={
-          // <ProtectedRoute>
-          <CreateListing />
-          // </ProtectedRoute>
+          <ProtectedRoute requiredRole="Landlord">
+            <CreateListing />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/property/:id" element={<PropertyDetails />} />
+      <Route
+        path="/payout-methods"
+        element={
+          <ProtectedRoute requiredRole="Landlord">
+            <PayoutMethods />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/payment-methods"
+        element={
+          <ProtectedRoute>
+            <PaymentMethods />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/checkout/result" element={<CheckoutResult />} />
+      <Route
+        path="/manage-listing/:id"
+        element={
+          <ProtectedRoute requiredRole="Landlord">
+            <ManageListing />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/update-listing/:id"
+        element={
+          <ProtectedRoute requiredRole="Landlord">
+            <UpdateListing />
+          </ProtectedRoute>
         }
       />
       <Route
