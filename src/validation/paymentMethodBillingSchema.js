@@ -18,8 +18,8 @@ export const paymentMethodBillingSchema = z.object({
     .string()
     .trim()
     .regex(
-      /^[A-Za-z][A-Za-z0-9._%+-]*@gmail\.com$/,
-      "Email must be a valid Gmail address.",
+      /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,
+      "Email must be a valid email address",
     ),
   phoneNumber: z
     .string()

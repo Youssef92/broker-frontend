@@ -4,7 +4,10 @@ import { refreshTokenRequest } from "../services/authService";
 import { setAccessToken, clearAccessToken } from "../utils/tokenManager";
 import { AuthContext } from "./authContextValue";
 import { getMyProfile } from "../services/profileService";
-import { unregisterDeviceForNotifications } from "../services/notificationService";
+import {
+  registerDeviceForNotifications,
+  unregisterDeviceForNotifications,
+} from "../services/notificationService";
 
 const REFRESH_TOKEN_KEY = "refreshToken";
 
@@ -43,6 +46,7 @@ export function AuthProvider({ children }) {
           } else {
             setUser({ accessToken: result.data.accessToken });
           }
+          registerDeviceForNotifications();
         } else {
           logout();
         }
@@ -67,6 +71,7 @@ export function AuthProvider({ children }) {
     } catch {
       setUser({ accessToken: data.accessToken });
     }
+    registerDeviceForNotifications();
     navigate("/");
   };
 
