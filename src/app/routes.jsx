@@ -17,6 +17,9 @@ import PaymentMethods from "../pages/payment/PaymentMethods";
 import CheckoutResult from "../pages/payment/CheckoutResult";
 import ManageListing from "../pages/landlord/ManageListing";
 import UpdateListing from "../pages/landlord/UpdateListing";
+import BookingPage from "../pages/booking/BookingPage";
+import BookingConfirmPage from "../pages/booking/BookingConfirmPage";
+import BookingSuccessPage from "../pages/booking/BookingSuccessPage";
 
 function AppRoutes() {
   return (
@@ -84,6 +87,30 @@ function AppRoutes() {
         element={
           <ProtectedRoute requiredRole="Landlord">
             <UpdateListing />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/book/:propertyId"
+        element={
+          <ProtectedRoute>
+            <BookingPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/booking/confirm/:bookingId"
+        element={
+          <ProtectedRoute>
+            <BookingConfirmPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/booking/success"
+        element={
+          <ProtectedRoute>
+            <BookingSuccessPage />
           </ProtectedRoute>
         }
       />

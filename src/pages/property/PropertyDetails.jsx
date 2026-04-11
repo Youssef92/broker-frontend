@@ -402,6 +402,37 @@ function PropertyDetails() {
             </div>
           </div>
         )}
+        {/* Action Buttons */}
+        <div className="flex gap-4 mt-16 pt-10 border-t border-[#c1aa77]/10">
+          {/* Rent Button */}
+          <button
+            onClick={() => {
+              if (property.intent === 2 || property.intent === "ForRent") {
+                navigate(`/book/${id}`);
+              }
+            }}
+            disabled={property.intent !== 2 && property.intent !== "ForRent"}
+            className={`flex-1 py-4 text-xs tracking-[4px] uppercase transition-all duration-300 ${
+              property.intent === 2 || property.intent === "ForRent"
+                ? "bg-[var(--gold)] text-[var(--dark)] hover:bg-[var(--gold-light)]"
+                : "border border-[#c1aa77]/20 text-[#f5f0e8]/20 cursor-not-allowed"
+            }`}
+          >
+            Rent This Property
+          </button>
+
+          {/* Buy Button */}
+          <button
+            disabled={property.intent !== 1 && property.intent !== "ForSale"}
+            className={`flex-1 py-4 text-xs tracking-[4px] uppercase transition-all duration-300 ${
+              property.intent === 1 || property.intent === "ForSale"
+                ? "bg-[var(--gold)] text-[var(--dark)] hover:bg-[var(--gold-light)]"
+                : "border border-[#c1aa77]/20 text-[#f5f0e8]/20 cursor-not-allowed"
+            }`}
+          >
+            Buy This Property
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -12,7 +12,14 @@ export async function registerDeviceForNotifications() {
     const permission = await Notification.requestPermission();
     if (permission !== "granted") return;
 
-    const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+    // Wait for service worker to be ready
+    const registration = await navigator.serviceWorker.ready;
+
+    const token = await getToken(messaging, {
+      vapidKey: VAPID_KEY,
+      serviceWorkerRegistration: registration,
+    });
+
     if (!token) return;
 
     const savedToken = localStorage.getItem(FCM_TOKEN_KEY);
