@@ -21,6 +21,7 @@ function CheckoutResult() {
     const fetchStatus = async () => {
       try {
         const result = await getCheckoutStatus(providerRef);
+        console.log("checkout status result:", result);
         if (result.succeeded) {
           setStatus("success");
           setMessage(
