@@ -8,20 +8,20 @@ function CheckoutResult() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const providerRef = searchParams.get("orderRef");
+  const orderRef = searchParams.get("orderRef");
+  const isBooking = orderRef?.startsWith("BKG_");
 
-  const [status, setStatus] = useState(providerRef ? "loading" : "failed");
+  const [status, setStatus] = useState(orderRef ? "loading" : "failed");
   const [message, setMessage] = useState(
-    providerRef ? "" : "Invalid checkout reference.",
+    orderRef ? "" : "Invalid checkout reference.",
   );
 
   useEffect(() => {
-    if (!providerRef) return;
+    if (!orderRef) return;
 
     const fetchStatus = async () => {
       try {
-        const result = await getCheckoutStatus(providerRef);
-        console.log("checkout status result:", result);
+        const result = await getCheckoutStatus(orderRef);
         if (result.succeeded) {
           setStatus("success");
           setMessage(
@@ -38,7 +38,7 @@ function CheckoutResult() {
     };
 
     fetchStatus();
-  }, [providerRef]);
+  }, [orderRef]);
 
   return (
     <div className="min-h-screen font-jost relative">
@@ -73,23 +73,40 @@ function CheckoutResult() {
               <>
                 <CheckCircle
                   size={48}
-                  className="text-green-400 mx-auto mb-6"
+                  className="text-[var(--gold)] mx-auto mb-6"
                 />
                 <p className="text-[10px] tracking-[5px] uppercase text-[var(--gold)] mb-3">
                   Success
                 </p>
                 <h1 className="font-cormorant text-4xl text-[var(--cream)] font-light mb-3">
-                  Payment Successful
+                  {isBooking ? "Booking Confirmed" : "Payment Successful"}
                 </h1>
                 <p className="text-[#f5f0e8]/40 text-sm tracking-wide mb-8">
                   {message}
                 </p>
-                <button
-                  onClick={() => navigate("/payment-methods")}
-                  className="border border-[var(--gold)] text-[var(--gold)] hover:bg-[var(--gold)] hover:text-[var(--dark)] px-8 py-3 text-xs tracking-[3px] uppercase transition-all duration-300"
-                >
-                  View Payment Methods
-                </button>
+                {isBooking ? (
+                  <div className="flex flex-col gap-3">
+                    <button
+                      onClick={() => navigate("/")}
+                      className="w-full py-3 bg-[var(--gold)] text-[var(--dark)] text-xs tracking-[4px] uppercase font-medium hover:bg-[var(--gold-light)] transition-all duration-300"
+                    >
+                      Back to Home
+                    </button>
+                    <button
+                      onClick={() => navigate("/dashboard")}
+                      className="w-full py-3 border border-[#c1aa77]/30 text-[#f5f0e8]/60 text-xs tracking-[4px] uppercase hover:border-[var(--gold)] hover:text-[var(--gold)] transition-all duration-300"
+                    >
+                      View My Bookings
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => navigate("/payment-methods")}
+                    className="border border-[var(--gold)] text-[var(--gold)] hover:bg-[var(--gold)] hover:text-[var(--dark)] px-8 py-3 text-xs tracking-[3px] uppercase transition-all duration-300"
+                  >
+                    View Payment Methods
+                  </button>
+                )}
               </>
             )}
 
@@ -105,12 +122,21 @@ function CheckoutResult() {
                 <p className="text-[#f5f0e8]/40 text-sm tracking-wide mb-8">
                   {message}
                 </p>
-                <button
-                  onClick={() => navigate("/payment-methods")}
-                  className="border border-[var(--gold)] text-[var(--gold)] hover:bg-[var(--gold)] hover:text-[var(--dark)] px-8 py-3 text-xs tracking-[3px] uppercase transition-all duration-300"
-                >
-                  Try Again
-                </button>
+                {isBooking ? (
+                  <button
+                    onClick={() => navigate("/")}
+                    className="border border-[var(--gold)] text-[var(--gold)] hover:bg-[var(--gold)] hover:text-[var(--dark)] px-8 py-3 text-xs tracking-[3px] uppercase transition-all duration-300"
+                  >
+                    Back to Home
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => navigate("/payment-methods")}
+                    className="border border-[var(--gold)] text-[var(--gold)] hover:bg-[var(--gold)] hover:text-[var(--dark)] px-8 py-3 text-xs tracking-[3px] uppercase transition-all duration-300"
+                  >
+                    Try Again
+                  </button>
+                )}
               </>
             )}
           </div>
