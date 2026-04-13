@@ -51,3 +51,31 @@ export function listenToForegroundMessages(callback) {
     callback(payload);
   });
 }
+
+export async function getNotifications(params) {
+  const response = await axiosInstance.get("/api/v1/Notifications", { params });
+  return response.data;
+}
+
+export async function getUnreadCount() {
+  const response = await axiosInstance.get(
+    "/api/v1/Notifications/unread-count",
+  );
+  return response.data;
+}
+
+export async function markAsRead(id) {
+  const response = await axiosInstance.patch(
+    `/api/v1/Notifications/${id}/read`,
+  );
+  if (response.status === 204 || response.status === 200)
+    return { succeeded: true };
+  return response.data;
+}
+
+export async function markAllAsRead() {
+  const response = await axiosInstance.patch("/api/v1/Notifications/read-all");
+  if (response.status === 204 || response.status === 200)
+    return { succeeded: true };
+  return response.data;
+}

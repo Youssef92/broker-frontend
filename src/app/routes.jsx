@@ -20,6 +20,8 @@ import UpdateListing from "../pages/landlord/UpdateListing";
 import BookingPage from "../pages/booking/BookingPage";
 import BookingConfirmPage from "../pages/booking/BookingConfirmPage";
 import BookingSuccessPage from "../pages/booking/BookingSuccessPage";
+import NotificationsPage from "../pages/notifications/NotificationPage";
+import KycResultPage from "../pages/kyc/KycResultPage";
 
 function AppRoutes() {
   return (
@@ -111,6 +113,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <BookingSuccessPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <NotificationsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/kyc/result"
+        element={
+          <ProtectedRoute>
+            <KycResultPage />
           </ProtectedRoute>
         }
       />
