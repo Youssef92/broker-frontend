@@ -17,13 +17,13 @@ import {
 } from "../../services/identityService";
 
 const KYC_STATUS = {
-  NotStarted: 0,
-  InProgress: 1,
-  RequiresInput: 2,
-  Verified: 3,
-  Rejected: 4,
-  Redacted: 5,
-  Canceled: 6,
+  NotStarted: "NotStarted",
+  InProgress: "InProgress",
+  RequiresInput: "RequiresInput",
+  Verified: "Verified",
+  Rejected: "Rejected",
+  Redacted: "Redacted",
+  Canceled: "Canceled",
 };
 
 function timeAgo(dateStr) {
