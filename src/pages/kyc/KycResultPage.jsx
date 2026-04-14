@@ -17,13 +17,13 @@ import {
 import useAuth from "../../hooks/useAuth";
 
 const KYC_STATUS = {
-  NotStarted: 0,
-  InProgress: 1,
-  RequiresInput: 2,
-  Verified: 3,
-  Rejected: 4,
-  Redacted: 5,
-  Canceled: 6,
+  NotStarted: "NotStarted",
+  InProgress: "InProgress",
+  RequiresInput: "RequiresInput",
+  Verified: "Verified",
+  Rejected: "Rejected",
+  Redacted: "Redacted",
+  Canceled: "Canceled",
 };
 
 function KycResultPage() {
@@ -42,6 +42,11 @@ function KycResultPage() {
         const result = await getKycStatus();
         if (result.succeeded) {
           setStatus(result.data.status);
+          console.log(
+            "status value:",
+            result.data.status,
+            typeof result.data.status,
+          );
           setRejectionReason(result.data.rejectionReason || null);
         }
       } catch {
