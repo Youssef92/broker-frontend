@@ -42,11 +42,6 @@ function KycResultPage() {
         const result = await getKycStatus();
         if (result.succeeded) {
           setStatus(result.data.status);
-          console.log(
-            "status value:",
-            result.data.status,
-            typeof result.data.status,
-          );
           setRejectionReason(result.data.rejectionReason || null);
         }
       } catch {
