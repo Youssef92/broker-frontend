@@ -92,9 +92,8 @@ import * as signalR from "@microsoft/signalr";
 //     })
 //     .build();
 
-const getAccessToken = () => {
-  return localStorage.getItem("token");
-};
+const accesstoken =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJiNWQwMGU3ZS0wMWE0LTQ2NWEtOTVlNS05ZGYzMzYzNTFhNTkiLCJ1bmlxdWVfbmFtZSI6IllvdXNzZWYgSGFzc2FuIiwiZW1haWwiOiJ5b3Vzc2VmaGFzc2FuMTQxOUBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9tb2JpbGVwaG9uZSI6IisyMDEwNjA4NjE2NDciLCJqdGkiOiIxZTEwN2VlZS04Yzg1LTQ1ZmQtYjRlZS0yMzg4YTNmZThlODUiLCJyb2xlIjpbIkNsaWVudCIsIkxhbmRsb3JkIl0sIm5iZiI6MTc3NjI4NDA3NCwiZXhwIjoxNzc2Mjg0OTc0LCJpYXQiOjE3NzYyODQwNzQsImlzcyI6IkJyb2tlclN5c3RlbV9BcGlfVjEiLCJhdWQiOiJCcm9rZXJTeXN0ZW1fQ2xpZW50cyJ9.7HtwX_b518RVGnd7SsBSGA-4K8jUebhW8LZDZQf4f4Y";
 
 var connection = new signalR.HubConnectionBuilder()
   // 🚀 FIX: The options object must be inside the withUrl parenthesis as the second parameter
@@ -102,7 +101,7 @@ var connection = new signalR.HubConnectionBuilder()
     "https://proxy-server-production-3f3a.up.railway.app/hubs/notifications",
     {
       // 🚀 FRONTEND REQUIREMENT: Send the token here
-      accessTokenFactory: () => getAccessToken,
+      accessTokenFactory: () => accesstoken,
     },
   )
   .configureLogging(signalR.LogLevel.Information)
