@@ -28,7 +28,9 @@ var connection = new signalR.HubConnectionBuilder()
 
 // Event handler for receiving notifications from the server
 connection.on("ReceiveNotification", function (Data) {
+  console.log("Dataxxxxx");
   console.log("Notification received:", Data);
+  console.log("Dataxxxxx");
 });
 
 // Connection status monitoring
