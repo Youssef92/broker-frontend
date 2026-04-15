@@ -1,47 +1,19 @@
 import * as signalR from "@microsoft/signalr";
 
-// var connection = new signalR.HubConnectionBuilder()
-//     .withUrl("https://localhost:7296/DisplayPosts")
-//     .configureLogging(signalR.LogLevel.Information) // Enable detailed logging
-//     .build();
+// The Proxy URL on Railway that connects to your Backend
+const PROXY_URL =
+  "https://proxy-server-production-3f3a.up.railway.app/hubs/notifications";
 
-// async function startConnection() {
-//     try {
-//         await connection.start();
-//         console.log("SignalR Connected.");
-//     } catch (err) {
-//         console.log("Connection error: ", err);
-//         // Try again after 5 seconds
-//         setTimeout(startConnection, 5000);
-//     }
-// }
-
-//     Connection.on("ReceivePost", function (Data) {
-//         console.log(Data)
-// })
-// // Add connection status handlers
-// connection.onclose(async () => {
-//     console.log("Connection closed. Attempting to reconnect...");
-//     await startConnection();
-// });
-
-// // Start the connection
-// startConnection();
-
-// Create the connection
-// var connection2 = new signalR.HubConnectionBuilder()
-//     .withUrl("https://localhost:7296/DisplayNewCommentNotification")
-//     .configureLogging(signalR.LogLevel.Information)
-//     .withAutomaticReconnect({
-//         nextRetryDelayInMilliseconds: retryContext => {
-//             // Exponential backoff: 1s, 2s, 4s, 8s, 16s, then max 30s
-//             return Math.min(Math.pow(2, retryContext.previousRetryCount) * 1000, 30000);
-//         }
-//     })
-//     .build();
-
+// Create the SignalR connection
 var connection = new signalR.HubConnectionBuilder()
-  .withUrl("http://localhost:3000/hubs/notifications")
+  .withUrl(PROXY_URL, {
+    // skipNegotiation: false ensures compatibility with the proxy
+    skipNegotiation: false,
+    // Allowing both WebSockets and Long Polling for better stability
+    transport:
+      signalR.HttpTransportType.WebSockets |
+      signalR.HttpTransportType.LongPolling,
+  })
   .configureLogging(signalR.LogLevel.Information)
   .withAutomaticReconnect({
     nextRetryDelayInMilliseconds: (retryContext) => {
@@ -54,13 +26,12 @@ var connection = new signalR.HubConnectionBuilder()
   })
   .build();
 
-// Define your handler for receiving posts
+// Event handler for receiving notifications from the server
 connection.on("ReceiveNotification", function (Data) {
-  console.log("ReceiveNewMessage Data:", Data);
-  // Add your logic to handle the incoming post data
+  console.log("Notification received:", Data);
 });
 
-// Connection status handlers
+// Connection status monitoring
 connection.onreconnecting((error) => {
   console.log("Connection lost. Attempting to reconnect...", error);
 });
@@ -71,52 +42,31 @@ connection.onreconnected((connectionId) => {
 
 connection.onclose((error) => {
   console.log("Connection closed.", error);
-  // Only attempt manual reconnect if it wasn't an intentional close
+  // Manual restart if the connection closed unexpectedly
   if (error) {
     startConnection();
   }
 });
 
-// Start the connection with retry logic
+let retryCount = 0;
+
+// Function to start the connection with custom retry logic
 async function startConnection() {
   try {
     await connection.start();
     console.log("SignalR Connected. Connection ID:", connection.connectionId);
-
-    // Optional: Call server methods after connection is established
-    // await connection.invoke("SomeServerMethod");
+    retryCount = 0; // Reset retry counter on successful connection
   } catch (err) {
     console.error("Connection failed:", err);
 
-    // Exponential backoff for retry (1s, 2s, 4s, 8s, etc.)
-    const delay = Math.min(1000 * Math.pow(2, retryCount), 30000); // Max 30s delay
+    // Calculate delay before next attempt
+    const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
     retryCount++;
 
     console.log(`Retrying in ${delay / 1000} seconds...`);
     setTimeout(startConnection, delay);
   }
 }
-// async function startConnection2() {
-//     try {
-//         await connection2.start();
-//         console.log("SignalR Connected. Connection ID:", connection2.connectionId);
 
-//         // Optional: Call server methods after connection is established
-//         // await connection.invoke("SomeServerMethod");
-
-//     } catch (err) {
-//         console.error("Connection failed:", err);
-
-//         // Exponential backoff for retry (1s, 2s, 4s, 8s, etc.)
-//         const delay = Math.min(1000 * Math.pow(2, retryCount), 30000); // Max 30s delay
-//         retryCount++;
-
-//         console.log(`Retrying in ${delay/1000} seconds...`);
-//         setTimeout(startConnection2, delay);
-//     }
-// }
-let retryCount = 0;
+// Initial call to start the connection
 startConnection();
-//startConnection2();
-// Optional: Add this to your window object for debugging
-// window.signalRConnection = connection;
