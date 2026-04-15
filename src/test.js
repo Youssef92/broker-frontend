@@ -41,7 +41,7 @@ import * as signalR from "@microsoft/signalr";
 //     .build();
 
 var connection = new signalR.HubConnectionBuilder()
-  .withUrl("http://brokersystem.runasp.net/hubs/notifications")
+  .withUrl("http://localhost:3000/hubs/notifications")
   .configureLogging(signalR.LogLevel.Information)
   .withAutomaticReconnect({
     nextRetryDelayInMilliseconds: (retryContext) => {
