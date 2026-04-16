@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { getMyTrips } from "../../services/bookingService";
+import Navbar from "../../components/layout/Navbar";
 
 // ─── Status config ───────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -215,101 +216,106 @@ export default function ClientDashboard() {
     <div
       className="min-h-screen text-white relative bg-cover bg-center bg-fixed"
       style={{
-        backgroundImage: `linear-gradient(to bottom, rgba(13,13,13,0.80) 0%, rgba(13,13,13,0.97) 50%, rgba(13,13,13,1) 100%), url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1800&q=80')`,
+        backgroundImage: `linear-gradient(to bottom, rgba(13,13,13,0.7) 0%, rgba(13,13,13,0.9) 50%, rgba(13,13,13,1) 100%), url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1800&q=80')`,
       }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Hero */}
-        <div className="relative w-full h-64 rounded-3xl overflow-hidden mb-10">
-          <img
-            src="https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=1800&q=80"
-            alt="My Trips"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
-          <div className="absolute inset-0 flex flex-col justify-center px-10">
-            <h1
-              className="text-5xl font-semibold text-white"
-              style={{ fontFamily: "Cormorant Garamond, serif" }}
-            >
-              My Trips
-            </h1>
-            {!loading && (
-              <p className="text-white/50 mt-2 text-sm">
-                {totalCount} {totalCount === 1 ? "booking" : "bookings"} found
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-              <SkeletonCard key={i} />
-            ))}
-          </div>
-        ) : trips.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-32 text-center">
-            <Calendar size={48} className="text-white/10 mb-4" />
-            <p className="text-white/40 text-lg">No trips yet</p>
-            <p className="text-white/25 text-sm mt-1">
-              Start exploring properties
-            </p>
-            <button
-              onClick={() => navigate("/")}
-              className="mt-6 px-6 py-2.5 rounded-full border border-[var(--gold)]/40 text-[var(--gold)] text-sm hover:bg-[var(--gold)]/10 transition-colors"
-            >
-              Explore Properties
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {trips.map((trip) => (
-              <TripCard
-                key={trip.bookingId}
-                trip={trip}
-                onPayOnline={handlePayOnline}
-                onCancel={handleCancel}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Pagination */}
-        {!loading && totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 mt-12">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="px-4 py-2 rounded-lg border border-white/10 text-white/50 hover:border-[var(--gold)]/40 hover:text-[var(--gold)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm"
-            >
-              Previous
-            </button>
-
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => handlePageChange(page)}
-                className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
-                  page === currentPage
-                    ? "bg-[var(--gold)] text-[var(--dark)] font-semibold"
-                    : "border border-white/10 text-white/50 hover:border-[var(--gold)]/40 hover:text-[var(--gold)]"
-                }`}
+      <div className="relative z-10 pt-12 ">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* Hero */}
+          <div className="relative w-full h-52 rounded-3xl overflow-hidden mb-6">
+            <img
+              src="https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=1800&q=80"
+              alt="My Trips"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
+            <div className="absolute inset-0 flex flex-col justify-center px-10">
+              <h1
+                className="text-5xl font-semibold text-white"
+                style={{ fontFamily: "Cormorant Garamond, serif" }}
               >
-                {page}
-              </button>
-            ))}
-
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 rounded-lg border border-white/10 text-white/50 hover:border-[var(--gold)]/40 hover:text-[var(--gold)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm"
-            >
-              Next
-            </button>
+                My Trips
+              </h1>
+              {!loading && (
+                <p className="text-white/50 mt-2 text-sm">
+                  {totalCount} {totalCount === 1 ? "booking" : "bookings"} found
+                </p>
+              )}
+            </div>
           </div>
-        )}
+
+          {/* Grid */}
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: PAGE_SIZE }).map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
+          ) : trips.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-32 text-center">
+              <Calendar size={48} className="text-white/10 mb-4" />
+              <p className="text-white/40 text-lg">No trips yet</p>
+              <p className="text-white/25 text-sm mt-1">
+                Start exploring properties
+              </p>
+              <button
+                onClick={() => navigate("/")}
+                className="mt-6 px-6 py-2.5 rounded-full border border-[var(--gold)]/40 text-[var(--gold)] text-sm hover:bg-[var(--gold)]/10 transition-colors"
+              >
+                Explore Properties
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {trips.map((trip) => (
+                <TripCard
+                  key={trip.bookingId}
+                  trip={trip}
+                  onPayOnline={handlePayOnline}
+                  onCancel={handleCancel}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {!loading && totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-12">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-4 py-2 rounded-lg border border-white/10 text-white/50 hover:border-[var(--gold)]/40 hover:text-[var(--gold)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm"
+              >
+                Previous
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
+                      page === currentPage
+                        ? "bg-[var(--gold)] text-[var(--dark)] font-semibold"
+                        : "border border-white/10 text-white/50 hover:border-[var(--gold)]/40 hover:text-[var(--gold)]"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ),
+              )}
+
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 rounded-lg border border-white/10 text-white/50 hover:border-[var(--gold)]/40 hover:text-[var(--gold)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
