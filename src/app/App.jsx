@@ -1,9 +1,14 @@
 import { useEffect } from "react";
 import { listenToForegroundMessages } from "../services/notificationService";
+import { startConnection, stopConnection } from "../services/signalRService";
 import toast from "react-hot-toast";
 import AppRoutes from "./routes";
+import useAuth from "../hooks/useAuth";
 
 function App() {
+  const { user, token } = useAuth();
+
+  // Firebase foreground messages
   useEffect(() => {
     const unsubscribe = listenToForegroundMessages((payload) => {
       const title = payload?.notification?.title || "New Notification";
@@ -22,6 +27,15 @@ function App() {
 
     return () => unsubscribe();
   }, []);
+
+  // SignalR connection
+  useEffect(() => {
+    if (user && token) {
+      startConnection(token);
+    } else {
+      stopConnection();
+    }
+  }, [user, token]);
 
   return <AppRoutes />;
 }

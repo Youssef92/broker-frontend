@@ -17,3 +17,7 @@ export async function getBlockedDates(propertyId, startDate, endDate) {
   );
   return response.data;
 }
+
+export const getMyTrips = (params) => {
+  return axiosInstance.get("/api/v1/Bookings/my-trips", { params });
+};

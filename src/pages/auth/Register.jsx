@@ -288,7 +288,7 @@ function StepTwo({ next, back }) {
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ country: "Egypt" }),
+            body: JSON.stringify({ country: "EG" }),
           },
         );
         const data = await res.json();
@@ -305,7 +305,7 @@ function StepTwo({ next, back }) {
     };
 
     fetchGovernorates();
-    setValue("address.country", "Egypt");
+    setValue("address.country", "EG");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -322,7 +322,7 @@ function StepTwo({ next, back }) {
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ country: "Egypt", state: selectedState }),
+            body: JSON.stringify({ country: "EG", state: selectedState }),
           },
         );
         const data = await res.json();
@@ -377,8 +377,8 @@ function StepTwo({ next, back }) {
           {...register("address.country")}
           className={selectClass(errors.address?.country)}
         >
-          <option value="Egypt" className="bg-[#1a1a1a]">
-            Egypt
+          <option value="EG" className="bg-[#1a1a1a]">
+            EG
           </option>
         </select>
         {errors.address?.country && (

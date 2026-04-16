@@ -6,6 +6,18 @@ import react from "@vitejs/plugin-react";
 //   plugins: [react()],
 // });
 
+// export default defineConfig({
+//   plugins: [react()],
+//   server: {
+//     proxy: {
+//       "/api": {
+//         target: "http://brokersystem.runasp.net",
+//         changeOrigin: true,
+//       },
+//     },
+//   },
+// });
+
 export default defineConfig({
   plugins: [react()],
   server: {
@@ -13,6 +25,11 @@ export default defineConfig({
       "/api": {
         target: "http://brokersystem.runasp.net",
         changeOrigin: true,
+      },
+      "/hubs": {
+        target: "http://brokersystem.runasp.net",
+        changeOrigin: true,
+        ws: true, // enables WebSocket proxying
       },
     },
   },

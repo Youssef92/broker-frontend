@@ -5,7 +5,6 @@ import App from "./app/App";
 import { AuthProvider } from "./context/AuthContext";
 import { Toaster } from "react-hot-toast";
 import "./index.css";
-import "./test.js";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>

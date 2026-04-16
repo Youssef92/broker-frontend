@@ -23,11 +23,12 @@ const getDeviceId = () => {
   return deviceId;
 };
 
-const PROXY_URL = "https://proxy-server-production-3f3a.up.railway.app";
+// const PROXY_URL = "https://proxy-server-production-3f3a.up.railway.app";
 
 // ---- Axios Instance ----
 const axiosInstance = axios.create({
-  baseURL: PROXY_URL,
+  // baseURL: PROXY_URL,
+  baseURL: import.meta.env.VITE_API_URL || "",
   headers: {
     "Content-Type": "application/json",
     "X-Client-Id": CLIENT_ID,

@@ -15,6 +15,11 @@ import {
   upgradeToLandlord,
   getKycStatus,
 } from "../../services/identityService";
+import {
+  onNotificationReceived,
+  offNotificationReceived,
+} from "../../services/signalRService";
+import toast from "react-hot-toast";
 
 const KYC_STATUS = {
   NotStarted: "NotStarted",
@@ -101,6 +106,38 @@ function Navbar() {
       setUnreadCount((prev) => prev + 1);
     });
     return () => unsubscribe();
+  }, [user]);
+
+  // SignalR real-time notifications
+  useEffect(() => {
+    if (!user) return;
+
+    onNotificationReceived((notification) => {
+      // increment bell count
+      setUnreadCount((prev) => prev + 1);
+
+      // if dropdown is open, prepend to list
+      setNotifications((prev) => [notification, ...prev]);
+
+      // show toast
+      toast(
+        notification.message
+          ? `${notification.title}: ${notification.message}`
+          : notification.title,
+        {
+          icon: "🔔",
+          style: {
+            background: "var(--dark-2)",
+            color: "var(--cream)",
+            border: "1px solid rgba(193,170,119,0.2)",
+            fontFamily: "Jost, sans-serif",
+            fontSize: "13px",
+          },
+        },
+      );
+    });
+
+    return () => offNotificationReceived();
   }, [user]);
 
   // Close dropdown when clicking outside
