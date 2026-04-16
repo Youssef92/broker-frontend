@@ -1,8 +1,8 @@
 import * as signalR from "@microsoft/signalr";
 
-const HUB_URL = import.meta.env.DEV
-  ? "/hubs/notifications"
-  : "http://brokersystem.runasp.net/hubs/notifications";
+// const HUB_URL = import.meta.env.DEV
+//   ? "/hubs/notifications"
+//   : "http://brokersystem.runasp.net/hubs/notifications";
 
 let connection = null;
 
@@ -10,7 +10,7 @@ export const startConnection = async (token) => {
   if (connection) return;
 
   connection = new signalR.HubConnectionBuilder()
-    .withUrl(HUB_URL, {
+    .withUrl("https://f7f5-197-43-154-78.ngrok-free.app/hubs/notifications", {
       accessTokenFactory: () => token,
     })
     .withAutomaticReconnect()
