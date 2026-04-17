@@ -4,9 +4,10 @@ import { startConnection, stopConnection } from "../services/signalRService";
 import toast from "react-hot-toast";
 import AppRoutes from "./routes";
 import useAuth from "../hooks/useAuth";
+import { getAccessToken } from "../utils/tokenManager";
 
 function App() {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
 
   // Firebase foreground messages
   useEffect(() => {
@@ -30,12 +31,13 @@ function App() {
 
   // SignalR connection
   useEffect(() => {
-    if (user && token) {
+    if (user) {
+      const token = getAccessToken();
       startConnection(token);
     } else {
       stopConnection();
     }
-  }, [user, token]);
+  }, [user]);
 
   return <AppRoutes />;
 }
