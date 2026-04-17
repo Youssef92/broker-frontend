@@ -103,7 +103,7 @@ var connection = new signalR.HubConnectionBuilder()
 
 // Define your handler for receiving posts
 connection.on("ReceiveNotification", function (Data) {
-  console.log("ReceiveNewMessage Data:", Data);
+  console.log("ReceiveNewMessage data:", Data);
   // Add your logic to handle the incoming post data
 });
 
