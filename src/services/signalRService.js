@@ -26,6 +26,8 @@ export const startConnection = async (token) => {
 };
 
 export const onNotificationReceived = (callback) => {
+  console.log(callback);
+  console.log("Test");
   if (!connection) return;
   connection.on("ReceiveNotification", callback);
   console.log(callback);
