@@ -6,9 +6,12 @@ let retryCount = 0;
 export async function startConnection(token) {
   // ✅ Build the connection HERE so token is available
   connection = new signalR.HubConnectionBuilder()
-    .withUrl("https://ddb8-197-43-154-78.ngrok-free.app/hubs/notifications", {
-      accessTokenFactory: () => token, // ✅ Token passed here
-    })
+    .withUrl(
+      "https://broker-system-dwarekbaebcdgac9.spaincentral-01.azurewebsites.net/hubs/notifications",
+      {
+        accessTokenFactory: () => token, // ✅ Token passed here
+      },
+    )
     .configureLogging(signalR.LogLevel.Information)
     .withAutomaticReconnect({
       nextRetryDelayInMilliseconds: (retryContext) =>
@@ -45,6 +48,16 @@ export async function startConnection(token) {
     console.log(`Retrying in ${delay / 1000} seconds...`);
     setTimeout(() => startConnection(token), delay); // ✅ Pass token on retry
   }
+}
+
+export function onNotificationReceived(callback) {
+  if (!connection) return;
+  connection.on("ReceiveNotification", callback);
+}
+
+export function offNotificationReceived() {
+  if (!connection) return;
+  connection.off("ReceiveNotification");
 }
 
 export async function stopConnection() {
