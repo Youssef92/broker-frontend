@@ -41,6 +41,15 @@ export async function startConnection(token) {
     await connection.start();
     console.log("SignalR Connected. Connection ID:", connection.connectionId);
     retryCount = 0;
+
+    // temporary test
+    setTimeout(() => {
+      connection
+        .invoke("ReceiveNotification", { title: "Test", message: "Hello" })
+        .catch(() =>
+          console.log("invoke failed — but listener is registered ✓"),
+        );
+    }, 3000);
   } catch (err) {
     console.error("Connection failed:", err);
     const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
