@@ -1,7 +1,9 @@
 import * as signalR from "@microsoft/signalr";
 import { getAccessToken } from "../utils/tokenManager";
 
-const HUB_URL = "/hubs/notifications";
+const HUB_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/hubs/notifications`
+  : "/hubs/notifications";
 
 // "https://broker-system-dwarekbaebcdgac9.spaincentral-01.azurewebsites.net/hubs/notifications";
 
