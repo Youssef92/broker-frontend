@@ -4,7 +4,6 @@ import { startConnection, stopConnection } from "../services/signalRService";
 import toast from "react-hot-toast";
 import AppRoutes from "./routes";
 import useAuth from "../hooks/useAuth";
-import { getAccessToken } from "../utils/tokenManager";
 
 function App() {
   const { user } = useAuth();
@@ -32,8 +31,7 @@ function App() {
   // SignalR connection
   useEffect(() => {
     if (user) {
-      const token = getAccessToken();
-      startConnection(token);
+      startConnection();
     } else {
       stopConnection();
     }
