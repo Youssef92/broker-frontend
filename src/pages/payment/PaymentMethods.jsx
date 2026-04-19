@@ -208,7 +208,7 @@ function PaymentMethods() {
             "url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&q=80')",
         }}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0d0d0d]/85 via-[#0d0d0d]/75 to-[#0d0d0d]/85" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0d0d0d]/85 via-[#0d0d0d]/90 to-[#0d0d0d]/95" />
 
       <div className="relative z-10">
         <Navbar />

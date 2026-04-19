@@ -1,9 +1,9 @@
 import * as signalR from "@microsoft/signalr";
 import { getAccessToken } from "../utils/tokenManager";
 
-const HUB_URL = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/hubs/notifications`
-  : "/hubs/notifications";
+// const HUB_URL = import.meta.env.VITE_API_URL
+//   ? `${import.meta.env.VITE_API_URL}/hubs/notifications`
+//   : "/hubs/notifications";
 
 // "https://broker-system-dwarekbaebcdgac9.spaincentral-01.azurewebsites.net/hubs/notifications";
 
@@ -18,7 +18,7 @@ export const startConnection = async () => {
   }
 
   connection = new signalR.HubConnectionBuilder()
-    .withUrl(HUB_URL, {
+    .withUrl("https://a495-197-43-154-78.ngrok-free.app/hubs/notifications", {
       accessTokenFactory: () => getAccessToken(), // ✅ always reads fresh token
     })
     .configureLogging(signalR.LogLevel.Information)

@@ -50,7 +50,7 @@ export default function LandlordDashboard() {
     <div
       className="min-h-screen text-white relative bg-cover bg-center bg-fixed"
       style={{
-        backgroundImage: `linear-gradient(to bottom, rgba(13,13,13,0.6) 0%, rgba(13,13,13,0.7) 50%, rgba(13,13,13,0.7) 100%), url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1800&q=80')`,
+        backgroundImage: `linear-gradient(to bottom, rgba(13,13,13,0.7) 0%, rgba(13,13,13,0.8) 50%, rgba(13,13,13,0.9) 100%), url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1800&q=80')`,
       }}
     >
       <div className="relative z-10 pt-12">
