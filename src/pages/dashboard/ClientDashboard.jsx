@@ -8,7 +8,6 @@ import {
   CreditCard,
   MessageCircle,
   XCircle,
-  Loader2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { getMyTrips } from "../../services/bookingService";
@@ -50,10 +49,6 @@ const formatDate = (dateStr) => {
 // ─── Trip Card ───────────────────────────────────────────────────
 const TripCard = ({ trip, onPayOnline, onCancel }) => {
   const status = STATUS_CONFIG[trip.status] ?? STATUS_CONFIG.Pending;
-  const hasAnyAction =
-    trip.actions.canPayOnline ||
-    trip.actions.canCancel ||
-    trip.actions.canMessageLandlord;
 
   return (
     <motion.div
@@ -116,38 +111,49 @@ const TripCard = ({ trip, onPayOnline, onCancel }) => {
           </span>
         </div>
 
-        {/* Action Buttons */}
-        {hasAnyAction && (
-          <div className="flex flex-wrap gap-2 pt-1 border-t border-white/5">
-            {trip.actions.canPayOnline && (
-              <button
-                onClick={() => onPayOnline(trip)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--gold)]/10 hover:bg-[var(--gold)]/20 text-[var(--gold)] text-xs font-medium transition-colors"
-              >
-                <CreditCard size={13} />
-                Pay Online
-              </button>
-            )}
-            {trip.actions.canMessageLandlord && (
-              <button
-                onClick={() => toast("Messaging coming soon")}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 text-xs font-medium transition-colors"
-              >
-                <MessageCircle size={13} />
-                Message
-              </button>
-            )}
-            {trip.actions.canCancel && (
-              <button
-                onClick={() => onCancel(trip)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-medium transition-colors"
-              >
-                <XCircle size={13} />
-                Cancel
-              </button>
-            )}
-          </div>
-        )}
+        {/* Action Buttons — always shown, disabled when not available */}
+        <div className="flex flex-wrap gap-2 pt-1 border-t border-white/5">
+          <button
+            onClick={() => trip.actions.canPayOnline && onPayOnline(trip)}
+            disabled={!trip.actions.canPayOnline}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              trip.actions.canPayOnline
+                ? "bg-[var(--gold)]/10 hover:bg-[var(--gold)]/20 text-[var(--gold)]"
+                : "bg-white/5 text-white/20 cursor-not-allowed"
+            }`}
+          >
+            <CreditCard size={13} />
+            Pay Online
+          </button>
+
+          <button
+            onClick={() =>
+              trip.actions.canMessageLandlord && toast("Messaging coming soon")
+            }
+            disabled={!trip.actions.canMessageLandlord}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              trip.actions.canMessageLandlord
+                ? "bg-white/5 hover:bg-white/10 text-white/70"
+                : "bg-white/5 text-white/20 cursor-not-allowed"
+            }`}
+          >
+            <MessageCircle size={13} />
+            Message
+          </button>
+
+          <button
+            onClick={() => trip.actions.canCancel && onCancel(trip)}
+            disabled={!trip.actions.canCancel}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              trip.actions.canCancel
+                ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
+                : "bg-white/5 text-white/20 cursor-not-allowed"
+            }`}
+          >
+            <XCircle size={13} />
+            Cancel
+          </button>
+        </div>
       </div>
     </motion.div>
   );
@@ -208,7 +214,6 @@ export default function ClientDashboard() {
   };
 
   const handleCancel = () => {
-    // placeholder — cancel endpoint not in swagger yet
     toast("Cancel coming soon");
   };
 
@@ -219,7 +224,7 @@ export default function ClientDashboard() {
         backgroundImage: `linear-gradient(to bottom, rgba(13,13,13,0.7) 0%, rgba(13,13,13,0.9) 50%, rgba(13,13,13,1) 100%), url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1800&q=80')`,
       }}
     >
-      <div className="relative z-10 pt-12 ">
+      <div className="relative z-10 pt-12">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Hero */}
@@ -289,7 +294,6 @@ export default function ClientDashboard() {
               >
                 Previous
               </button>
-
               {Array.from({ length: totalPages }, (_, i) => i + 1).map(
                 (page) => (
                   <button
@@ -305,7 +309,6 @@ export default function ClientDashboard() {
                   </button>
                 ),
               )}
-
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}

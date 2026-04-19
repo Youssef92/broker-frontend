@@ -1,8 +1,9 @@
 import * as signalR from "@microsoft/signalr";
 import { getAccessToken } from "../utils/tokenManager";
 
-const HUB_URL =
-  "https://broker-system-dwarekbaebcdgac9.spaincentral-01.azurewebsites.net/hubs/notifications";
+const HUB_URL = "/hubs/notifications";
+
+// "https://broker-system-dwarekbaebcdgac9.spaincentral-01.azurewebsites.net/hubs/notifications";
 
 let connection = null;
 let retryCount = 0;
@@ -62,9 +63,11 @@ export const startConnection = async () => {
     const isUnauthorized =
       err?.message?.includes("401") || err?.message?.includes("Unauthorized");
     if (isUnauthorized) {
-      console.warn("SignalR: Unauthorized — stopping retry.");
+      console.warn("SignalR: Unauthorized — will retry after token refresh.");
       connection = null;
       retryCount = 0;
+      // Wait 3 seconds for axios interceptor to refresh the token, then retry
+      setTimeout(() => startConnection(), 3000);
       return;
     }
     const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);

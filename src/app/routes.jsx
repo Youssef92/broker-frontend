@@ -22,6 +22,9 @@ import BookingConfirmPage from "../pages/booking/BookingConfirmPage";
 import BookingSuccessPage from "../pages/booking/BookingSuccessPage";
 import NotificationsPage from "../pages/notifications/NotificationPage";
 import KycResultPage from "../pages/kyc/KycResultPage";
+import ClientDashboard from "../pages/dashboard/ClientDashboard.jsx";
+import HostListings from "../pages/landlord/HostListings";
+import HostReservations from "../pages/landlord/HostReservations";
 
 function AppRoutes() {
   return (
@@ -129,6 +132,30 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <KycResultPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/client"
+        element={
+          <ProtectedRoute>
+            <ClientDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/host/listings"
+        element={
+          <ProtectedRoute requiredRole="Landlord">
+            <HostListings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/host/reservations"
+        element={
+          <ProtectedRoute requiredRole="Landlord">
+            <HostReservations />
           </ProtectedRoute>
         }
       />

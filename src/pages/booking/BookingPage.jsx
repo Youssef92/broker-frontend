@@ -120,7 +120,9 @@ function BookingPage() {
         }
 
         // blockedResult is a plain array
-        if (Array.isArray(blockedResult)) {
+        if (blockedResult?.succeeded && Array.isArray(blockedResult.data)) {
+          setBlockedRanges(blockedResult.data);
+        } else if (Array.isArray(blockedResult)) {
           setBlockedRanges(blockedResult);
         }
       } catch {
@@ -491,24 +493,20 @@ function BookingPage() {
                 </p>
               </button>
 
-              {/* Cash */}
+              {/* Cash — disabled */}
               <button
-                onClick={() => setPaymentMethod(2)}
-                className={`p-5 border text-left transition-all duration-200 ${
-                  paymentMethod === 2
-                    ? "border-[var(--gold)] bg-[#c1aa77]/5"
-                    : "border-[#c1aa77]/20 hover:border-[#c1aa77]/40"
-                }`}
+                disabled
+                className="p-5 border border-[#c1aa77]/10 text-left cursor-not-allowed opacity-40 relative"
               >
-                <p
-                  className={`text-sm font-medium mb-1 ${paymentMethod === 2 ? "text-[var(--gold)]" : "text-[var(--cream)]"}`}
-                >
+                <p className="text-sm font-medium mb-1 text-[var(--cream)]">
                   Cash Payment
                 </p>
                 <p className="text-[#f5f0e8]/40 text-xs leading-relaxed">
-                  Pay a small service fee online. Remaining amount paid in cash
-                  to the landlord.
+                  Currently unavailable.
                 </p>
+                <span className="absolute top-2 right-2 text-[9px] tracking-[2px] uppercase text-[#f5f0e8]/20 border border-[#f5f0e8]/10 px-2 py-0.5">
+                  Soon
+                </span>
               </button>
             </div>
           </motion.div>

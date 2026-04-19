@@ -45,6 +45,10 @@ function PropertyDetails() {
       try {
         const result = await getPropertyById(id);
         if (result.succeeded) {
+          if (result.data.isOwner) {
+            navigate(`/manage-listing/${id}`, { replace: true });
+            return;
+          }
           setProperty(result.data);
         } else {
           setNotFound(true);
@@ -62,6 +66,7 @@ function PropertyDetails() {
     };
 
     fetchProperty();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {

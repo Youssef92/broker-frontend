@@ -22,7 +22,8 @@ export function AuthProvider({ children }) {
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     setUser(null);
     navigate("/login");
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // On app start — check if user was already logged in
   useEffect(() => {
@@ -58,7 +59,8 @@ export function AuthProvider({ children }) {
     };
 
     restoreSession();
-  }, [logout]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const login = async (data) => {
     setAccessToken(data.accessToken);

@@ -15,19 +15,15 @@ function BookingConfirmPage() {
   const location = useLocation();
   const { user } = useAuth();
 
-  // Get booking data passed from BookingPage
   const booking = location.state?.booking;
 
-  // Timer state
   const [timeLeft, setTimeLeft] = useState(null);
   const [timerExpired, setTimerExpired] = useState(false);
 
-  // Saved cards
   const [savedCards, setSavedCards] = useState([]);
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [loadingCards, setLoadingCards] = useState(true);
 
-  // Billing form
   const [billing, setBilling] = useState({
     firstName: "",
     lastName: "",
@@ -41,7 +37,6 @@ function BookingConfirmPage() {
 
   const [submitting, setSubmitting] = useState(false);
 
-  // Redirect if no booking data in state
   useEffect(() => {
     if (!booking) {
       toast.error("Booking session not found.");
@@ -50,7 +45,6 @@ function BookingConfirmPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [booking]);
 
-  // Pre-fill billing from user profile
   useEffect(() => {
     if (!user) return;
     setBilling({
@@ -65,7 +59,6 @@ function BookingConfirmPage() {
     });
   }, [user]);
 
-  // Countdown timer
   useEffect(() => {
     if (!booking?.paymentTimeoutAt) return;
 
@@ -91,7 +84,6 @@ function BookingConfirmPage() {
     return () => clearInterval(interval);
   }, [booking]);
 
-  // Fetch saved cards
   useEffect(() => {
     const fetchCards = async () => {
       setLoadingCards(true);
@@ -99,12 +91,11 @@ function BookingConfirmPage() {
         const result = await getPaymentMethods();
         if (result.succeeded) {
           setSavedCards(result.data || []);
-          // Auto-select default card if exists
           const defaultCard = result.data?.find((c) => c.isDefault);
           if (defaultCard) setSelectedCardId(defaultCard.id);
         }
       } catch {
-        // silently fail — user can still proceed without saved cards
+        // silently fail
       } finally {
         setLoadingCards(false);
       }
@@ -134,19 +125,8 @@ function BookingConfirmPage() {
         billingDetails: billing,
       });
 
-      console.log("session result:", result);
-      console.log("session result.succeeded:", result?.succeeded);
-      console.log("session result.data:", result?.data);
-
       if (result.succeeded) {
-        if (selectedCardId) {
-          // Payment handled in background — go to success
-          navigate("/booking/success", { state: { booking } });
-        } else {
-          // Redirect to Paymob
-          console.log("Redirecting to:", result.data);
-          window.location.href = result.data.checkoutUrl;
-        }
+        window.location.href = result.data.checkoutUrl;
       } else {
         toast.error(result.message || "Checkout failed. Please try again.");
       }
@@ -221,7 +201,6 @@ function BookingConfirmPage() {
                 transition={{ delay: 0.1 }}
                 className="bg-[#1a1a1a]/60 border border-[#c1aa77]/20 p-6 mb-6 flex gap-5"
               >
-                {/* Thumbnail */}
                 {booking.propertyThumbnailUrl ? (
                   <img
                     src={booking.propertyThumbnailUrl}
@@ -232,7 +211,6 @@ function BookingConfirmPage() {
                   <div className="w-24 h-24 bg-[#222] flex-shrink-0" />
                 )}
 
-                {/* Details */}
                 <div className="flex-1">
                   <p className="text-[10px] tracking-[4px] uppercase text-[var(--gold)] mb-1">
                     Booking Summary
@@ -249,17 +227,6 @@ function BookingConfirmPage() {
                         </p>
                         <p className="text-[var(--gold)] text-sm">
                           {booking.payableOnlineAmount.toLocaleString()}{" "}
-                          {booking.currency}
-                        </p>
-                      </div>
-                    )}
-                    {booking.payableInCashAmount > 0 && (
-                      <div>
-                        <p className="text-[10px] tracking-[3px] uppercase text-[#f5f0e8]/30 mb-0.5">
-                          Due in Cash
-                        </p>
-                        <p className="text-[var(--cream)] text-sm">
-                          {booking.payableInCashAmount.toLocaleString()}{" "}
                           {booking.currency}
                         </p>
                       </div>
@@ -292,7 +259,9 @@ function BookingConfirmPage() {
                     <button
                       onClick={() =>
                         navigate("/payment-methods", {
-                          state: { returnTo: `/booking/confirm/${bookingId}` },
+                          state: {
+                            returnTo: `/booking/confirm/${bookingId}`,
+                          },
                         })
                       }
                       className="flex items-center gap-2 text-[var(--gold)] text-xs tracking-[3px] uppercase hover:text-[var(--gold-light)] transition-colors"
@@ -344,7 +313,9 @@ function BookingConfirmPage() {
                     <button
                       onClick={() =>
                         navigate("/payment-methods", {
-                          state: { returnTo: `/booking/confirm/${bookingId}` },
+                          state: {
+                            returnTo: `/booking/confirm/${bookingId}`,
+                          },
                         })
                       }
                       className="flex items-center gap-2 text-[#f5f0e8]/40 text-xs tracking-[3px] uppercase hover:text-[var(--gold)] transition-colors mt-2"
