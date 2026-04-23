@@ -4,7 +4,7 @@ import {
   startConnection,
   onNotificationReceived,
   offNotificationReceived,
-} from "../../services/signalRService";
+} from "../services/signalRService";
 import toast from "react-hot-toast";
 import AppRoutes from "./routes";
 // import useAuth from "../hooks/useAuth";
