@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import { format, addMonths } from "date-fns";
 import toast from "react-hot-toast";
@@ -7,6 +8,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./BookingWidget.css";
 
 export default function BookingWidget({ propertyListingId, price, priceUnit }) {
+  const navigate = useNavigate();
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [blockedIntervals, setBlockedIntervals] = useState([]);
@@ -57,20 +59,24 @@ export default function BookingWidget({ propertyListingId, price, priceUnit }) {
         propertyListingId,
         checkInDate: format(startDate, "yyyy-MM-dd"),
         checkOutDate: format(endDate, "yyyy-MM-dd"),
-        paymentMethod: 1 // default given in user request
+        paymentMethod: 1,
       };
 
       const result = await createBooking(payload);
       if (result.succeeded) {
-        toast.success("Booking Successful!");
-        setStartDate(null);
-        setEndDate(null);
-
-        // Optimistically add the new blocked interval
-        setBlockedIntervals((prev) => [
-          ...prev,
-          { start: startDate, end: endDate },
-        ]);
+        const bookingId = result.data?.id || result.data?.bookingId || result.data;
+        toast.success("Booking created! Redirecting to payment...");
+        // Navigate to the checkout page with booking details
+        navigate(`/checkout/${bookingId}`, {
+          state: {
+            bookingId,
+            checkInDate: format(startDate, "yyyy-MM-dd"),
+            checkOutDate: format(endDate, "yyyy-MM-dd"),
+            currency: price?.currency || "EGP",
+            amount: price?.amount,
+            priceUnit,
+          },
+        });
       } else {
         toast.error(result.message || "Booking failed.");
       }
@@ -78,7 +84,6 @@ export default function BookingWidget({ propertyListingId, price, priceUnit }) {
       if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else if (error.response?.data?.errors) {
-        // Some APIs return a map of validation errors
         const firstError = Object.values(error.response.data.errors)[0];
         toast.error(Array.isArray(firstError) ? firstError[0] : "Validation Error");
       } else {

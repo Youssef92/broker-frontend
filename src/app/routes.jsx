@@ -17,6 +17,7 @@ import PropertyDetails from "../pages/property/PropertyDetails";
 import PayoutMethods from "../pages/landlord/PayoutMethods";
 import PaymentMethods from "../pages/payment/PaymentMethods";
 import CheckoutResult from "../pages/payment/CheckoutResult";
+import CheckoutPage from "../pages/payment/CheckoutPage";
 import ManageListing from "../pages/landlord/ManageListing";
 import UpdateListing from "../pages/landlord/UpdateListing";
 
@@ -73,6 +74,14 @@ function AppRoutes() {
         }
       />
       <Route path="/checkout/result" element={<CheckoutResult />} />
+      <Route
+        path="/checkout/:bookingId"
+        element={
+          <ProtectedRoute>
+            <CheckoutPage />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/manage-listing/:id"
         element={

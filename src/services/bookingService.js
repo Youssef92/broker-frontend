@@ -10,10 +10,12 @@ export const getBlockedDates = async (propertyListingId, startDate, endDate) => 
       },
     }
   );
+
   return response.data;
 };
 
 export const createBooking = async (bookingData) => {
   const response = await axiosInstance.post("/api/v1/Bookings", bookingData);
+    console.log( "createBooking ",response)
   return response.data;
 };
