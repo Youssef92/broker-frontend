@@ -82,6 +82,7 @@ export const startConnection = async () => {
 export const onNotificationReceived = (callback) => {
   if (!connection) return;
   connection.on("ReceiveMessage", callback);
+  console.log(callback);
 };
 
 export const offNotificationReceived = () => {
