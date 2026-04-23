@@ -18,7 +18,7 @@ export const startConnection = async () => {
   }
 
   connection = new signalR.HubConnectionBuilder()
-    .withUrl("https://80b5-197-43-154-78.ngrok-free.app/hubs/notifications", {
+    .withUrl("https://5cc7-197-43-185-226.ngrok-free.app/hubs/chat", {
       accessTokenFactory: () => getAccessToken(), // ✅ always reads fresh token
     })
     .configureLogging(signalR.LogLevel.Information)
@@ -81,12 +81,12 @@ export const startConnection = async () => {
 
 export const onNotificationReceived = (callback) => {
   if (!connection) return;
-  connection.on("ReceiveNotification", callback);
+  connection.on("ReceiveMessage", callback);
 };
 
 export const offNotificationReceived = () => {
   if (!connection) return;
-  connection.off("ReceiveNotification");
+  connection.off("ReceiveMessage");
 };
 
 export const stopConnection = async () => {

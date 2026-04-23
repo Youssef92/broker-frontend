@@ -8,6 +8,7 @@ import ResendConfirmation from "../pages/auth/ResendConfirmation";
 import MyProfile from "../pages/profile/MyProfile";
 import UserProfile from "../pages/profile/UserProfile";
 import ProtectedRoute from "../components/common/ProtectedRoute";
+import UnauthorizedPage from "../pages/UnauthorizedPage";
 import Home from "../pages/home/Home";
 import CreateListing from "../pages/landlord/CreateListing";
 import Dashboard from "../pages/dashboard/Dashboard";
@@ -25,6 +26,10 @@ import KycResultPage from "../pages/kyc/KycResultPage";
 import ClientDashboard from "../pages/dashboard/ClientDashboard.jsx";
 import HostListings from "../pages/landlord/HostListings";
 import HostReservations from "../pages/landlord/HostReservations";
+import RolesPage from "../pages/superAdmin/RolesPage";
+import SuperAdminDashboard from "../pages/dashboard/SuperAdminDashboard";
+import PayoutBalancePage from "../pages/superAdmin/PayoutBalancePage";
+import PlatformSettingsPage from "../pages/superAdmin/PlatformSettingsPage";
 
 function AppRoutes() {
   return (
@@ -37,6 +42,7 @@ function AppRoutes() {
       <Route path="/confirm-email" element={<ConfirmEmail />} />
       <Route path="/resend-confirmation" element={<ResendConfirmation />} />
       <Route path="/profile" element={<MyProfile />} />
+      <Route path="/unauthorized" element={<UnauthorizedPage />} />
       <Route
         path="/user/:userId"
         element={
@@ -156,6 +162,30 @@ function AppRoutes() {
         element={
           <ProtectedRoute requiredRole="Landlord">
             <HostReservations />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/roles"
+        element={
+          <ProtectedRoute requiredRole="SuperAdmin">
+            <RolesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/payout-balance"
+        element={
+          <ProtectedRoute requiredRole="SuperAdmin">
+            <PayoutBalancePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/settings"
+        element={
+          <ProtectedRoute requiredRole="SuperAdmin">
+            <PlatformSettingsPage />
           </ProtectedRoute>
         }
       />
