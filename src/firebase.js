@@ -12,4 +12,11 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker
+    .register("/firebase-messaging-sw.js")
+    .catch((err) => console.error("Service worker registration failed:", err));
+}
+
 export const messaging = getMessaging(app);

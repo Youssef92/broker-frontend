@@ -33,5 +33,5 @@ export const updateProfileSchema = z.object({
     .string()
     .trim()
     .min(1, "Zip code is required")
-    .regex(/^[0-9]{7}$/, "Zip code must be exactly 7 digits"),
+    .regex(/^[0-9]{5}$/, "Zip code must be exactly 5 digits"),
 });

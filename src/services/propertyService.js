@@ -65,3 +65,11 @@ export const deletePropertyListing = async (id) => {
   }
   return response.data;
 };
+
+export const configureRentalRules = async (propertyId, data) => {
+  const response = await axiosInstance.put(
+    `/api/v1/PropertyListings/${propertyId}/rental-rules`,
+    data,
+  );
+  return response.data;
+};

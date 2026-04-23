@@ -3,8 +3,6 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import Navbar from "../../components/layout/Navbar";
 import { getProperties } from "../../services/propertyService";
-import { registerDeviceForNotifications } from "../../services/notificationService";
-import useAuth from "../../hooks/useAuth";
 
 const PROPERTY_TYPES = [
   { value: "", label: "All Types" },
@@ -22,7 +20,6 @@ const PAGE_SIZE = 10;
 
 function Home() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -66,9 +63,6 @@ function Home() {
 
   useEffect(() => {
     fetchProperties(1);
-    if (user) {
-      registerDeviceForNotifications();
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
