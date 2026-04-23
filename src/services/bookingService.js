@@ -22,3 +22,11 @@ export const createBooking = async (bookingData) => {
 export const getMyTrips = (params) => {
   return axiosInstance.get("/api/v1/Bookings/my-trips", { params });
 };
+
+export const acceptHandover = async (bookingId, data = {}) => {
+  const response = await axiosInstance.post(
+    `/api/v1/Bookings/${bookingId}/handover/accept`,
+    data,
+  );
+  return response.data;
+};

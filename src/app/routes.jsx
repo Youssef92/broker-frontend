@@ -32,6 +32,7 @@ import RolesPage from "../pages/superAdmin/RolesPage";
 import SuperAdminDashboard from "../pages/dashboard/SuperAdminDashboard";
 import PayoutBalancePage from "../pages/superAdmin/PayoutBalancePage";
 import PlatformSettingsPage from "../pages/superAdmin/PlatformSettingsPage";
+import Reservations from "../pages/landlord/Reservations";
 
 function AppRoutes() {
   return (
@@ -172,6 +173,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute requiredRole="Landlord">
             <HostReservations />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reservations"
+        element={
+          <ProtectedRoute requiredRole="Landlord">
+            <Reservations />
           </ProtectedRoute>
         }
       />

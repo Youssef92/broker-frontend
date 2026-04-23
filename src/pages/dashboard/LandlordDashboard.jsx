@@ -129,7 +129,7 @@ export default function LandlordDashboard() {
                   icon={CalendarDays}
                   title="Reservations"
                   description="View and manage guest bookings"
-                  onClick={() => navigate("/host/reservations")}
+                  onClick={() => navigate("/reservations")}
                 />
                 <QuickLinkCard
                   icon={Banknote}
