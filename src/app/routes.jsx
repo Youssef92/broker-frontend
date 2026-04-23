@@ -11,11 +11,13 @@ import ProtectedRoute from "../components/common/ProtectedRoute";
 import UnauthorizedPage from "../pages/UnauthorizedPage";
 import Home from "../pages/home/Home";
 import CreateListing from "../pages/landlord/CreateListing";
+import RolesManagement from "../pages/admin/RolesManagement";
 import Dashboard from "../pages/dashboard/Dashboard";
 import PropertyDetails from "../pages/property/PropertyDetails";
 import PayoutMethods from "../pages/landlord/PayoutMethods";
 import PaymentMethods from "../pages/payment/PaymentMethods";
 import CheckoutResult from "../pages/payment/CheckoutResult";
+import CheckoutPage from "../pages/payment/CheckoutPage";
 import ManageListing from "../pages/landlord/ManageListing";
 import UpdateListing from "../pages/landlord/UpdateListing";
 import BookingPage from "../pages/booking/BookingPage";
@@ -30,6 +32,7 @@ import RolesPage from "../pages/superAdmin/RolesPage";
 import SuperAdminDashboard from "../pages/dashboard/SuperAdminDashboard";
 import PayoutBalancePage from "../pages/superAdmin/PayoutBalancePage";
 import PlatformSettingsPage from "../pages/superAdmin/PlatformSettingsPage";
+import Reservations from "../pages/landlord/Reservations";
 
 function AppRoutes() {
   return (
@@ -85,6 +88,14 @@ function AppRoutes() {
         }
       />
       <Route path="/checkout/result" element={<CheckoutResult />} />
+      <Route
+        path="/checkout/:bookingId"
+        element={
+          <ProtectedRoute>
+            <CheckoutPage />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/manage-listing/:id"
         element={
@@ -162,6 +173,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute requiredRole="Landlord">
             <HostReservations />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reservations"
+        element={
+          <ProtectedRoute requiredRole="Landlord">
+            <Reservations />
           </ProtectedRoute>
         }
       />

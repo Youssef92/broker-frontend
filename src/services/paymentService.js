@@ -12,6 +12,12 @@ export const addPaymentMethod = async (data) => {
   return response.data;
 };
 
+export const createCheckoutSession = async (data) => {
+  const response = await axiosInstance.post("/api/v1/Checkout/session", data);
+  
+  return response.data;
+};
+
 export const getCheckoutStatus = async (orderReference) => {
   const response = await axiosInstance.get(
     `/api/v1/Checkout/${orderReference}/status`,
@@ -19,7 +25,4 @@ export const getCheckoutStatus = async (orderReference) => {
   return response.data;
 };
 
-export async function createCheckoutSession(data) {
-  const response = await axiosInstance.post("/api/v1/Checkout/session", data);
-  return response.data;
-}
+

@@ -23,7 +23,7 @@ const getDeviceId = () => {
 
 // ---- Axios Instance ----
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "",
+  baseURL: import.meta.env.VITE_API_URL || "http://brokersystem.runasp.net",
   headers: {
     "Content-Type": "application/json",
     "X-Client-Id": CLIENT_ID,

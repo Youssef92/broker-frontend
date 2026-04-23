@@ -21,7 +21,7 @@ function UserProfile() {
       } catch (err) {
         toast.error(
           err.response?.data?.message ||
-            "Something went wrong, please try again.",
+          "Something went wrong, please try again.",
         );
       } finally {
         setPageLoading(false);

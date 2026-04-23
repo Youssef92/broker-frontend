@@ -42,6 +42,9 @@ export function AuthProvider({ children }) {
           setAccessToken(result.data.accessToken);
           localStorage.setItem(REFRESH_TOKEN_KEY, result.data.refreshToken);
           const profile = await getMyProfile();
+          ////////////////////////
+          console.log(profile);
+          ///////////////////////
           if (profile.succeeded) {
             setUser(profile.data);
           } else {

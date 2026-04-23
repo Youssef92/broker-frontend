@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { getPropertyById } from "../../services/propertyService";
 import Navbar from "../../components/layout/Navbar";
 import { ArrowLeft, Camera, X, ChevronLeft, ChevronRight } from "lucide-react";
+import BookingWidget from "../../components/property/BookingWidget";
 
 const PROPERTY_TYPE = {
   1: "Apartment",
@@ -350,63 +351,75 @@ function PropertyDetails() {
             </div>
           </div>
         </div>
-        {/* Tab Headers */}
-        <div className="flex border-b border-[#c1aa77]/10 mb-10">
-          {["description", "location"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-8 py-4 text-[10px] tracking-[4px] uppercase transition-all duration-300 ${
-                activeTab === tab
-                  ? "text-[var(--gold)] border-b-2 border-[var(--gold)]"
-                  : "text-[#f5f0e8]/30 hover:text-[#f5f0e8]/60"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-        {/* Tab Content */}
-        {activeTab === "description" && (
-          <div className="max-w-3xl">
-            <p className="text-[#f5f0e8]/60 leading-relaxed text-sm tracking-wide">
-              {property.description || "No description available."}
-            </p>
-          </div>
-        )}
-        {activeTab === "location" && (
-          <div className="max-w-3xl">
-            {/* Address card */}
-            <div className="flex items-start gap-4 border border-[#c1aa77]/20 p-6 mb-6">
-              <div className="text-[var(--gold)] mt-1">📍</div>
-              <div className="flex-1">
-                <p className="text-[var(--cream)] text-sm leading-relaxed">
-                  {property.location?.formattedAddress}
-                </p>
-                <a
-                  href={`https://www.google.com/maps?q=${property.location?.latitude},${property.location?.longitude}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 mt-3 text-[var(--gold)] text-[10px] tracking-[3px] uppercase hover:text-[var(--gold-light)] transition-colors duration-300"
+        <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
+          {/* Left Side */}
+          <div className="flex-1">
+            {/* Tab Headers */}
+            <div className="flex border-b border-[#c1aa77]/10 mb-10">
+              {["description", "location"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-8 py-4 text-[10px] tracking-[4px] uppercase transition-all duration-300 ${
+                    activeTab === tab
+                      ? "text-[var(--gold)] border-b-2 border-[var(--gold)]"
+                      : "text-[#f5f0e8]/30 hover:text-[#f5f0e8]/60"
+                  }`}
                 >
-                  View on map →
-                </a>
-              </div>
+                  {tab}
+                </button>
+              ))}
             </div>
-            {/* Google Maps embed */}
-            <div className="w-full h-[400px] border border-[#c1aa77]/20">
-              <iframe
-                title="Property Location"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                loading="lazy"
-                allowFullScreen
-                src={`https://www.google.com/maps?q=${property.location?.latitude},${property.location?.longitude}&z=15&output=embed`}
-              />
+            {/* Tab Content */}
+            {activeTab === "description" && (
+              <div className="max-w-3xl">
+                <p className="text-[#f5f0e8]/60 leading-relaxed text-sm tracking-wide">
+                  {property.description || "No description available."}
+                </p>
+              </div>
+            )}
+            {activeTab === "location" && (
+              <div className="max-w-3xl">
+                {/* Address card */}
+                <div className="flex items-start gap-4 border border-[#c1aa77]/20 p-6 mb-6">
+                  <div className="text-[var(--gold)] mt-1">📍</div>
+                  <div className="flex-1">
+                    <p className="text-[var(--cream)] text-sm leading-relaxed">
+                      {property.location?.formattedAddress}
+                    </p>
+                    <a
+                      href={`https://www.google.com/maps?q=${property.location?.latitude},${property.location?.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 mt-3 text-[var(--gold)] text-[10px] tracking-[3px] uppercase hover:text-[var(--gold-light)] transition-colors duration-300"
+                    >
+                      View on map →
+                    </a>
+                  </div>
+                </div>
+                {/* Google Maps embed */}
+                <div className="w-full h-[400px] border border-[#c1aa77]/20">
+                  <iframe
+                    title="Property Location"
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    loading="lazy"
+                    allowFullScreen
+                    src={`https://www.google.com/maps?q=${property.location?.latitude},${property.location?.longitude}&z=15&output=embed`}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Side */}
+          <div className="w-full lg:w-[380px] xl:w-[420px] shrink-0">
+            <div className="sticky top-32">
+              <BookingWidget propertyListingId={id} price={property.price} priceUnit={priceUnit} />
             </div>
           </div>
-        )}
+        </div>
         {/* Action Buttons */}
         <div className="flex gap-4 mt-16 pt-10 border-t border-[#c1aa77]/10">
           {/* Rent Button */}
@@ -417,11 +430,10 @@ function PropertyDetails() {
               }
             }}
             disabled={property.intent !== 2 && property.intent !== "ForRent"}
-            className={`flex-1 py-4 text-xs tracking-[4px] uppercase transition-all duration-300 ${
-              property.intent === 2 || property.intent === "ForRent"
-                ? "bg-[var(--gold)] text-[var(--dark)] hover:bg-[var(--gold-light)]"
-                : "border border-[#c1aa77]/20 text-[#f5f0e8]/20 cursor-not-allowed"
-            }`}
+            className={`flex-1 py-4 text-xs tracking-[4px] uppercase transition-all duration-300 ${property.intent === 2 || property.intent === "ForRent"
+              ? "bg-[var(--gold)] text-[var(--dark)] hover:bg-[var(--gold-light)]"
+              : "border border-[#c1aa77]/20 text-[#f5f0e8]/20 cursor-not-allowed"
+              }`}
           >
             Rent This Property
           </button>
@@ -429,11 +441,10 @@ function PropertyDetails() {
           {/* Buy Button */}
           <button
             disabled={property.intent !== 1 && property.intent !== "ForSale"}
-            className={`flex-1 py-4 text-xs tracking-[4px] uppercase transition-all duration-300 ${
-              property.intent === 1 || property.intent === "ForSale"
-                ? "bg-[var(--gold)] text-[var(--dark)] hover:bg-[var(--gold-light)]"
-                : "border border-[#c1aa77]/20 text-[#f5f0e8]/20 cursor-not-allowed"
-            }`}
+            className={`flex-1 py-4 text-xs tracking-[4px] uppercase transition-all duration-300 ${property.intent === 1 || property.intent === "ForSale"
+              ? "bg-[var(--gold)] text-[var(--dark)] hover:bg-[var(--gold-light)]"
+              : "border border-[#c1aa77]/20 text-[#f5f0e8]/20 cursor-not-allowed"
+              }`}
           >
             Buy This Property
           </button>

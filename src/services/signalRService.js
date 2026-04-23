@@ -1,4 +1,4 @@
-import * as signalR from "@microsoft/signalr";
+// import * as signalR from "@microsoft/signalr";
 import { getAccessToken } from "../utils/tokenManager";
 
 let connection = null;
@@ -19,8 +19,10 @@ export const startConnection = async () => {
     return;
   }
 
+  const baseURL = import.meta.env.VITE_API_URL || "http://brokersystem.runasp.net";
+  
   connection = new signalR.HubConnectionBuilder()
-    .withUrl("https://5cc7-197-43-185-226.ngrok-free.app/hubs/chat", {
+    .withUrl(`${baseURL}/hubs/chat`, {
       accessTokenFactory: () => getAccessToken(),
     })
     .configureLogging(signalR.LogLevel.Information)

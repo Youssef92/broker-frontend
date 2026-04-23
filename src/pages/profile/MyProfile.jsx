@@ -50,7 +50,7 @@ function MyProfile() {
       } catch (err) {
         toast.error(
           err.response?.data?.message ||
-            "Something went wrong, please try again.",
+          "Something went wrong, please try again.",
         );
       } finally {
         setPageLoading(false);
@@ -73,7 +73,7 @@ function MyProfile() {
     } catch (err) {
       toast.error(
         err.response?.data?.message ||
-          "Something went wrong, please try again.",
+        "Something went wrong, please try again.",
       );
     } finally {
       setLoading(false);
@@ -93,7 +93,7 @@ function MyProfile() {
     } catch (err) {
       toast.error(
         err.response?.data?.message ||
-          "Something went wrong, please try again.",
+        "Something went wrong, please try again.",
       );
     } finally {
       setLoading(false);
@@ -168,11 +168,10 @@ function MyProfile() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`py-5 mr-9 text-[10px] tracking-[3px] uppercase transition-colors duration-300 relative ${
-                  activeTab === tab
-                    ? "text-[var(--gold)]"
-                    : "text-[#f5f0e8]/30 hover:text-[#f5f0e8]/60"
-                }`}
+                className={`py-5 mr-9 text-[10px] tracking-[3px] uppercase transition-colors duration-300 relative ${activeTab === tab
+                  ? "text-[var(--gold)]"
+                  : "text-[#f5f0e8]/30 hover:text-[#f5f0e8]/60"
+                  }`}
               >
                 {tab === "profile" ? "My Profile" : "Change Password"}
                 {activeTab === tab && (
@@ -355,11 +354,10 @@ function PasswordTab({ passwordForm, loading, onPasswordSubmit }) {
               type={show ? "text" : "password"}
               {...register(name)}
               placeholder="••••••••"
-              className={`w-full bg-transparent border-b pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none transition-colors duration-300 pr-8 ${
-                errors[name]
-                  ? "border-red-400"
-                  : "border-[#c1aa77]/20 focus:border-[var(--gold)]"
-              }`}
+              className={`w-full bg-transparent border-b pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none transition-colors duration-300 pr-8 ${errors[name]
+                ? "border-red-400"
+                : "border-[#c1aa77]/20 focus:border-[var(--gold)]"
+                }`}
             />
             <button
               type="button"
@@ -380,11 +378,10 @@ function PasswordTab({ passwordForm, loading, onPasswordSubmit }) {
       <button
         type="submit"
         disabled={loading}
-        className={`w-full py-4 text-[var(--dark)] text-xs tracking-[4px] uppercase font-medium transition-all duration-300 ${
-          loading
-            ? "bg-[#c1aa77]/50 cursor-not-allowed"
-            : "bg-[var(--gold)] hover:bg-[var(--gold-light)]"
-        }`}
+        className={`w-full py-4 text-[var(--dark)] text-xs tracking-[4px] uppercase font-medium transition-all duration-300 ${loading
+          ? "bg-[#c1aa77]/50 cursor-not-allowed"
+          : "bg-[var(--gold)] hover:bg-[var(--gold-light)]"
+          }`}
       >
         {loading ? "Changing..." : "Change Password"}
       </button>
