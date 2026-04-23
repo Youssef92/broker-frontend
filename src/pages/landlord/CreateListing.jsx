@@ -18,6 +18,8 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { getPayoutMethods } from "../../services/payoutService";
+import { rentalRulesSchema } from "../../validation/rentalRulesSchema";
+import { configureRentalRules } from "../../services/propertyService";
 
 // ---- Leaflet icon fix ----
 delete L.Icon.Default.prototype._getIconUrl;
@@ -28,7 +30,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-const stages = ["Details", "Photos", "Publish"];
+const stages = ["Details", "Photos", "Rules", "Publish"];
 
 const variants = {
   enter: (direction) => ({ x: direction === 1 ? 100 : -100, opacity: 0 }),
@@ -67,7 +69,7 @@ function CreateListing() {
   }, []);
 
   const methods = useForm({
-    resolver: zodResolver(createListingSchema),
+    resolver: zodResolver(createListingSchema, rentalRulesSchema),
     mode: "onBlur",
     shouldUnregister: false,
     defaultValues: {
@@ -88,6 +90,11 @@ function CreateListing() {
       priceAmount: "",
       priceCurrency: "EGP",
       priceUnit: "",
+      checkInTime: "",
+      checkOutTime: "",
+      minNights: "",
+      weeklyDiscount: "",
+      monthlyDiscount: "",
     },
   });
 
@@ -220,8 +227,32 @@ function CreateListing() {
     }
   };
 
-  const onContinueToPublish = () => {
+  const onContinueToRentalRules = () => {
     setStage(2);
+  };
+
+  const onSaveRentalRules = async (data) => {
+    setLoading(true);
+    try {
+      const payload = {
+        checkInTime: data.checkInTime,
+        checkOutTime: data.checkOutTime,
+        minNights: data.minNights,
+        weeklyDiscount: data.weeklyDiscount || null,
+        monthlyDiscount: data.monthlyDiscount || null,
+      };
+      const result = await configureRentalRules(listingId, payload);
+      if (result.succeeded) {
+        toast.success("Rental rules saved.");
+        setStage(3);
+      } else {
+        toast.error(result.message || "Failed to save rental rules.");
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const onPublish = async () => {
@@ -229,7 +260,7 @@ function CreateListing() {
     try {
       const result = await publishPropertyListing(listingId);
       if (result.succeeded) {
-        setStage(3);
+        setStage(4);
       } else {
         toast.error(result.message || "Failed to publish.");
       }
@@ -396,15 +427,23 @@ function CreateListing() {
                       images={images}
                       setImages={setImages}
                       onNext={onUploadImages}
-                      onContinue={onContinueToPublish}
+                      onContinue={onContinueToRentalRules}
                       loading={loading}
                       processing={processing}
                     />
                   )}
                   {stage === 2 && (
-                    <StagePublish onPublish={onPublish} loading={loading} />
+                    <StageRentalRules
+                      onNext={onSaveRentalRules}
+                      onBack={() => setStage(1)}
+                      loading={loading}
+                      listingId={listingId}
+                    />
                   )}
                   {stage === 3 && (
+                    <StagePublish onPublish={onPublish} loading={loading} />
+                  )}
+                  {stage === 4 && (
                     <StageSuccess navigate={navigate} onReset={onReset} />
                   )}
                 </>
@@ -1109,7 +1148,7 @@ function StageUploadImages({
             onClick={onContinue}
             className="w-full py-4 bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[var(--dark)] text-xs tracking-[4px] uppercase font-medium transition-all duration-300"
           >
-            Continue to Publish
+            Continue to Rental Rules
           </button>
         ) : (
           <button
@@ -1125,11 +1164,178 @@ function StageUploadImages({
   );
 }
 
-function StagePublish({ onPublish, loading }) {
+function StageRentalRules({ onNext, onBack, loading }) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    // setValue,
+  } = useForm({
+    resolver: zodResolver(rentalRulesSchema),
+    mode: "onSubmit",
+    defaultValues: {
+      checkInTime: "14:00",
+      checkOutTime: "11:00",
+      minNights: 1,
+      weeklyDiscount: null,
+      monthlyDiscount: null,
+    },
+  });
+
+  const onSubmit = async (data) => {
+    onNext(data);
+  };
+
   return (
     <>
       <p className="text-[10px] tracking-[5px] uppercase text-[var(--gold)] mb-3">
         Stage 3
+      </p>
+      <h2 className="font-cormorant text-4xl font-normal text-[var(--cream)] mb-4">
+        Rental Rules
+      </h2>
+      <p className="text-sm text-[#f5f0e8]/40 mb-10 tracking-wide">
+        Set check-in/out times, minimum stay, and optional discounts.
+      </p>
+
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        {/* Check-in / Check-out */}
+        <div className="grid grid-cols-2 gap-8 mb-8">
+          <div>
+            <label className="block text-[10px] tracking-[3px] uppercase text-[#c1aa77]/70 mb-2">
+              Check-in Time
+            </label>
+            <input
+              type="time"
+              {...register("checkInTime")}
+              className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm outline-none transition-colors duration-300 ${
+                errors.checkInTime
+                  ? "border-red-400"
+                  : "border-[#c1aa77]/20 focus:border-[var(--gold)]"
+              }`}
+            />
+            {errors.checkInTime && (
+              <p className="text-red-400 text-xs mt-2 tracking-wide">
+                {errors.checkInTime.message}
+              </p>
+            )}
+          </div>
+          <div>
+            <label className="block text-[10px] tracking-[3px] uppercase text-[#c1aa77]/70 mb-2">
+              Check-out Time
+            </label>
+            <input
+              type="time"
+              {...register("checkOutTime")}
+              className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm outline-none transition-colors duration-300 ${
+                errors.checkOutTime
+                  ? "border-red-400"
+                  : "border-[#c1aa77]/20 focus:border-[var(--gold)]"
+              }`}
+            />
+            {errors.checkOutTime && (
+              <p className="text-red-400 text-xs mt-2 tracking-wide">
+                {errors.checkOutTime.message}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Min Nights */}
+        <div className="mb-8">
+          <label className="block text-[10px] tracking-[3px] uppercase text-[#c1aa77]/70 mb-2">
+            Minimum Nights
+          </label>
+          <input
+            type="number"
+            min={1}
+            {...register("minNights", { valueAsNumber: true })}
+            placeholder="e.g. 2"
+            className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none transition-colors duration-300 ${
+              errors.minNights
+                ? "border-red-400"
+                : "border-[#c1aa77]/20 focus:border-[var(--gold)]"
+            }`}
+          />
+          {errors.minNights && (
+            <p className="text-red-400 text-xs mt-2 tracking-wide">
+              {errors.minNights.message}
+            </p>
+          )}
+        </div>
+
+        {/* Discounts */}
+        <div className="grid grid-cols-2 gap-8 mb-10">
+          <div>
+            <label className="block text-[10px] tracking-[3px] uppercase text-[#c1aa77]/70 mb-2">
+              Weekly Discount{" "}
+              <span className="text-[#f5f0e8]/20">(optional %)</span>
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={100}
+              {...register("weeklyDiscount", { valueAsNumber: true })}
+              placeholder="e.g. 10"
+              className="w-full bg-transparent border-0 border-b border-[#c1aa77]/20 pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none focus:border-[var(--gold)] transition-colors duration-300"
+            />
+            {errors.weeklyDiscount && (
+              <p className="text-red-400 text-xs mt-2 tracking-wide">
+                {errors.weeklyDiscount.message}
+              </p>
+            )}
+          </div>
+          <div>
+            <label className="block text-[10px] tracking-[3px] uppercase text-[#c1aa77]/70 mb-2">
+              Monthly Discount{" "}
+              <span className="text-[#f5f0e8]/20">(optional %)</span>
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={100}
+              {...register("monthlyDiscount", { valueAsNumber: true })}
+              placeholder="e.g. 15"
+              className="w-full bg-transparent border-0 border-b border-[#c1aa77]/20 pb-3 text-[var(--cream)] text-sm placeholder-[#f5f0e8]/20 outline-none focus:border-[var(--gold)] transition-colors duration-300"
+            />
+            {errors.monthlyDiscount && (
+              <p className="text-red-400 text-xs mt-2 tracking-wide">
+                {errors.monthlyDiscount.message}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex gap-4">
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex-1 py-4 border border-[#c1aa77]/30 hover:border-[var(--gold)] text-[var(--gold)] text-xs tracking-[4px] uppercase transition-all duration-300"
+          >
+            Back
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className={`flex-1 py-4 text-[var(--dark)] text-xs tracking-[4px] uppercase font-medium transition-all duration-300 ${
+              loading
+                ? "bg-[#c1aa77]/50 cursor-not-allowed"
+                : "bg-[var(--gold)] hover:bg-[var(--gold-light)]"
+            }`}
+          >
+            {loading ? "Saving..." : "Save & Continue"}
+          </button>
+        </div>
+      </form>
+    </>
+  );
+}
+
+function StagePublish({ onPublish, loading }) {
+  return (
+    <>
+      <p className="text-[10px] tracking-[5px] uppercase text-[var(--gold)] mb-3">
+        Stage 4
       </p>
       <h2 className="font-cormorant text-4xl font-normal text-[var(--cream)] mb-4">
         Publish Listing
@@ -1144,6 +1350,7 @@ function StagePublish({ onPublish, loading }) {
         <ul className="text-sm text-[#f5f0e8]/40 tracking-wide leading-8">
           <li>✓ Listing details saved</li>
           <li>✓ Photos uploaded and reviewed</li>
+          <li>✓ Rental rules configured</li>
           <li>→ Publishing will make your listing visible to all users</li>
         </ul>
       </div>

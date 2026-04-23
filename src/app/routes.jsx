@@ -8,7 +8,7 @@ import ResendConfirmation from "../pages/auth/ResendConfirmation";
 import MyProfile from "../pages/profile/MyProfile";
 import UserProfile from "../pages/profile/UserProfile";
 import ProtectedRoute from "../components/common/ProtectedRoute";
-import SuperAdminRoute from "../components/common/SuperAdminRoute";
+import UnauthorizedPage from "../pages/UnauthorizedPage";
 import Home from "../pages/home/Home";
 import CreateListing from "../pages/landlord/CreateListing";
 import RolesManagement from "../pages/admin/RolesManagement";
@@ -19,6 +19,18 @@ import PaymentMethods from "../pages/payment/PaymentMethods";
 import CheckoutResult from "../pages/payment/CheckoutResult";
 import ManageListing from "../pages/landlord/ManageListing";
 import UpdateListing from "../pages/landlord/UpdateListing";
+import BookingPage from "../pages/booking/BookingPage";
+import BookingConfirmPage from "../pages/booking/BookingConfirmPage";
+import BookingSuccessPage from "../pages/booking/BookingSuccessPage";
+import NotificationsPage from "../pages/notifications/NotificationPage";
+import KycResultPage from "../pages/kyc/KycResultPage";
+import ClientDashboard from "../pages/dashboard/ClientDashboard.jsx";
+import HostListings from "../pages/landlord/HostListings";
+import HostReservations from "../pages/landlord/HostReservations";
+import RolesPage from "../pages/superAdmin/RolesPage";
+import SuperAdminDashboard from "../pages/dashboard/SuperAdminDashboard";
+import PayoutBalancePage from "../pages/superAdmin/PayoutBalancePage";
+import PlatformSettingsPage from "../pages/superAdmin/PlatformSettingsPage";
 
 function AppRoutes() {
   return (
@@ -31,6 +43,7 @@ function AppRoutes() {
       <Route path="/confirm-email" element={<ConfirmEmail />} />
       <Route path="/resend-confirmation" element={<ResendConfirmation />} />
       <Route path="/profile" element={<MyProfile />} />
+      <Route path="/unauthorized" element={<UnauthorizedPage />} />
       <Route
         path="/user/:userId"
         element={
@@ -90,11 +103,91 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/book/:propertyId"
+        element={
+          <ProtectedRoute>
+            <BookingPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/booking/confirm/:bookingId"
+        element={
+          <ProtectedRoute>
+            <BookingConfirmPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/booking/success"
+        element={
+          <ProtectedRoute>
+            <BookingSuccessPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <NotificationsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/kyc/result"
+        element={
+          <ProtectedRoute>
+            <KycResultPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/client"
+        element={
+          <ProtectedRoute>
+            <ClientDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/host/listings"
+        element={
+          <ProtectedRoute requiredRole="Landlord">
+            <HostListings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/host/reservations"
+        element={
+          <ProtectedRoute requiredRole="Landlord">
+            <HostReservations />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/admin/roles"
         element={
-          <SuperAdminRoute>
-            <RolesManagement />
-          </SuperAdminRoute>
+          <ProtectedRoute requiredRole="SuperAdmin">
+            <RolesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/payout-balance"
+        element={
+          <ProtectedRoute requiredRole="SuperAdmin">
+            <PayoutBalancePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/settings"
+        element={
+          <ProtectedRoute requiredRole="SuperAdmin">
+            <PlatformSettingsPage />
+          </ProtectedRoute>
         }
       />
     </Routes>

@@ -18,3 +18,8 @@ export const getCheckoutStatus = async (orderReference) => {
   );
   return response.data;
 };
+
+export async function createCheckoutSession(data) {
+  const response = await axiosInstance.post("/api/v1/Checkout/session", data);
+  return response.data;
+}

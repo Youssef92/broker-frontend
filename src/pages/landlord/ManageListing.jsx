@@ -8,6 +8,10 @@ import {
   publishPropertyListing,
   deletePropertyListing,
 } from "../../services/propertyService";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { rentalRulesSchema } from "../../validation/rentalRulesSchema";
+import { configureRentalRules } from "../../services/propertyService";
 
 const PROPERTY_TYPE = {
   1: "Apartment",
@@ -64,6 +68,7 @@ function ManageListing() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [editingRules, setEditingRules] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -396,6 +401,58 @@ function ManageListing() {
           </div>
         </div>
 
+        {/* Rental Rules */}
+        {property.rentalRules && (
+          <div className="border-t border-[#c1aa77]/10 pt-8 mb-10">
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-[10px] tracking-[3px] uppercase text-[#c1aa77]/50">
+                Rental Rules
+              </p>
+              <button
+                onClick={() => setEditingRules(true)}
+                className="text-[10px] tracking-[3px] uppercase text-[var(--gold)] border border-[var(--gold)]/30 px-4 py-1.5 hover:border-[var(--gold)] transition-all duration-300"
+              >
+                Edit Rules
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-6">
+              {[
+                {
+                  label: "Check-in Time",
+                  value: property.rentalRules.checkInTime ?? "—",
+                },
+                {
+                  label: "Check-out Time",
+                  value: property.rentalRules.checkOutTime ?? "—",
+                },
+                {
+                  label: "Minimum Nights",
+                  value: property.rentalRules.minNights ?? "—",
+                },
+                {
+                  label: "Weekly Discount",
+                  value: property.rentalRules.weeklyDiscountPercentage
+                    ? `${property.rentalRules.weeklyDiscountPercentage}%`
+                    : "—",
+                },
+                {
+                  label: "Monthly Discount",
+                  value: property.rentalRules.monthlyDiscountPercentage
+                    ? `${property.rentalRules.monthlyDiscountPercentage}%`
+                    : "—",
+                },
+              ].map(({ label, value }) => (
+                <div key={label}>
+                  <p className="text-[10px] tracking-[3px] uppercase text-[#c1aa77]/40 mb-1">
+                    {label}
+                  </p>
+                  <p className="text-[var(--cream)] text-sm">{value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div className="border-t border-[#c1aa77]/10 pt-8 flex flex-wrap gap-4">
           {isDraft && (
@@ -420,6 +477,19 @@ function ManageListing() {
             Delete Listing
           </button>
         </div>
+
+        {/* Edit Rental Rules Modal */}
+        {editingRules && (
+          <EditRentalRulesModal
+            property={property}
+            onClose={() => setEditingRules(false)}
+            onSaved={(updatedRules) => {
+              setProperty((p) => ({ ...p, rentalRules: updatedRules }));
+              setEditingRules(false);
+              toast.success("Rental rules updated.");
+            }}
+          />
+        )}
 
         {/* Delete Confirmation */}
         {showDeleteConfirm && (
@@ -453,6 +523,181 @@ function ManageListing() {
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function EditRentalRulesModal({ property, onClose, onSaved }) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(rentalRulesSchema),
+    mode: "onSubmit",
+    defaultValues: {
+      checkInTime: property.rentalRules?.checkInTime?.slice(0, 5) ?? "14:00",
+      checkOutTime: property.rentalRules?.checkOutTime?.slice(0, 5) ?? "11:00",
+      minNights: property.rentalRules?.minNights ?? 1,
+      weeklyDiscount: property.rentalRules?.weeklyDiscountPercentage ?? null,
+      monthlyDiscount: property.rentalRules?.monthlyDiscountPercentage ?? null,
+    },
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  const onSubmit = async (data) => {
+    setLoading(true);
+    try {
+      const result = await configureRentalRules(property.id, {
+        checkInTime: data.checkInTime,
+        checkOutTime: data.checkOutTime,
+        minNights: data.minNights,
+        weeklyDiscount: data.weeklyDiscount || null,
+        monthlyDiscount: data.monthlyDiscount || null,
+      });
+      if (result.succeeded) {
+        onSaved({
+          checkInTime: data.checkInTime,
+          checkOutTime: data.checkOutTime,
+          minNights: data.minNights,
+          weeklyDiscountPercentage: data.weeklyDiscount || null,
+          monthlyDiscountPercentage: data.monthlyDiscount || null,
+        });
+      } else {
+        toast.error(result.message || "Failed to update rules.");
+      }
+    } catch {
+      toast.error("Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-[#0d0d0d]/80 flex items-center justify-center px-6">
+      <div className="bg-[#1a1a1a] border border-[#c1aa77]/20 p-10 max-w-lg w-full">
+        <p className="text-[10px] tracking-[5px] uppercase text-[var(--gold)] mb-3">
+          Edit
+        </p>
+        <h2 className="font-cormorant text-3xl text-[var(--cream)] font-light mb-8">
+          Rental Rules
+        </h2>
+
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div className="grid grid-cols-2 gap-6 mb-6">
+            <div>
+              <label className="block text-[10px] tracking-[3px] uppercase text-[#c1aa77]/70 mb-2">
+                Check-in Time
+              </label>
+              <input
+                type="time"
+                {...register("checkInTime")}
+                className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm outline-none transition-colors duration-300 ${
+                  errors.checkInTime
+                    ? "border-red-400"
+                    : "border-[#c1aa77]/20 focus:border-[var(--gold)]"
+                }`}
+              />
+              {errors.checkInTime && (
+                <p className="text-red-400 text-xs mt-1">
+                  {errors.checkInTime.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="block text-[10px] tracking-[3px] uppercase text-[#c1aa77]/70 mb-2">
+                Check-out Time
+              </label>
+              <input
+                type="time"
+                {...register("checkOutTime")}
+                className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm outline-none transition-colors duration-300 ${
+                  errors.checkOutTime
+                    ? "border-red-400"
+                    : "border-[#c1aa77]/20 focus:border-[var(--gold)]"
+                }`}
+              />
+              {errors.checkOutTime && (
+                <p className="text-red-400 text-xs mt-1">
+                  {errors.checkOutTime.message}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-[10px] tracking-[3px] uppercase text-[#c1aa77]/70 mb-2">
+              Minimum Nights
+            </label>
+            <input
+              type="number"
+              min={1}
+              {...register("minNights", { valueAsNumber: true })}
+              className={`w-full bg-transparent border-0 border-b pb-3 text-[var(--cream)] text-sm outline-none transition-colors duration-300 ${
+                errors.minNights
+                  ? "border-red-400"
+                  : "border-[#c1aa77]/20 focus:border-[var(--gold)]"
+              }`}
+            />
+            {errors.minNights && (
+              <p className="text-red-400 text-xs mt-1">
+                {errors.minNights.message}
+              </p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-6 mb-10">
+            <div>
+              <label className="block text-[10px] tracking-[3px] uppercase text-[#c1aa77]/70 mb-2">
+                Weekly Discount{" "}
+                <span className="text-[#f5f0e8]/20">(optional %)</span>
+              </label>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                {...register("weeklyDiscount", { valueAsNumber: true })}
+                className="w-full bg-transparent border-0 border-b border-[#c1aa77]/20 pb-3 text-[var(--cream)] text-sm outline-none focus:border-[var(--gold)] transition-colors duration-300"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] tracking-[3px] uppercase text-[#c1aa77]/70 mb-2">
+                Monthly Discount{" "}
+                <span className="text-[#f5f0e8]/20">(optional %)</span>
+              </label>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                {...register("monthlyDiscount", { valueAsNumber: true })}
+                className="w-full bg-transparent border-0 border-b border-[#c1aa77]/20 pb-3 text-[var(--cream)] text-sm outline-none focus:border-[var(--gold)] transition-colors duration-300"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-3 border border-[#c1aa77]/30 hover:border-[var(--gold)] text-[var(--gold)] text-xs tracking-[3px] uppercase transition-all duration-300"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className={`flex-1 py-3 text-[var(--dark)] text-xs tracking-[3px] uppercase font-medium transition-all duration-300 ${
+                loading
+                  ? "bg-[#c1aa77]/50 cursor-not-allowed"
+                  : "bg-[var(--gold)] hover:bg-[var(--gold-light)]"
+              }`}
+            >
+              {loading ? "Saving..." : "Save Changes"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

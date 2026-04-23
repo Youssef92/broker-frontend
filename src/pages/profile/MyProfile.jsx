@@ -57,6 +57,7 @@ function MyProfile() {
       }
     };
     fetchProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onProfileSubmit = async (data) => {
@@ -231,57 +232,63 @@ function ProfileTab({
   ];
 
   return (
-    <form onSubmit={handleSubmit(onProfileSubmit)} noValidate>
-      <div className="grid grid-cols-2 gap-x-8 gap-y-8 mb-10">
-        {fields.map(({ name, label }) => (
-          <div key={name}>
-            <label className="block text-[10px] tracking-[3px] uppercase text-[#c1aa77]/60 mb-2">
-              {label}
-            </label>
-            <input
-              type="text"
-              {...register(name)}
-              disabled={!isEditing}
-              className={`w-full bg-transparent border-b pb-3 text-[var(--cream)] text-sm outline-none transition-colors duration-300 ${!isEditing
-                ? "border-[#c1aa77]/50 text-[#f5f0e8]/50 cursor-default"
-                : errors[name]
-                  ? "border-red-400"
-                  : "border-[#c1aa77]/50 focus:border-[var(--gold)]"
+    <div>
+      <form onSubmit={handleSubmit(onProfileSubmit)} noValidate>
+        <div className="grid grid-cols-2 gap-x-8 gap-y-8 mb-10">
+          {fields.map(({ name, label }) => (
+            <div key={name}>
+              <label className="block text-[10px] tracking-[3px] uppercase text-[#c1aa77]/60 mb-2">
+                {label}
+              </label>
+              <input
+                type="text"
+                {...register(name)}
+                disabled={!isEditing}
+                className={`w-full bg-transparent border-b pb-3 text-[var(--cream)] text-sm outline-none transition-colors duration-300 ${
+                  !isEditing
+                    ? "border-[#c1aa77]/50 text-[#f5f0e8]/50 cursor-default"
+                    : errors[name]
+                      ? "border-red-400"
+                      : "border-[#c1aa77]/50 focus:border-[var(--gold)]"
                 }`}
-            />
-            {errors[name] && (
-              <p className="text-red-400 text-xs mt-2 tracking-wide">
-                {errors[name].message}
-              </p>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {isEditing ? (
-        <div className="flex gap-4">
-          <button
-            type="submit"
-            disabled={loading}
-            className={`flex-1 py-4 text-[var(--dark)] text-xs tracking-[4px] uppercase font-medium transition-all duration-300 ${loading
-              ? "bg-[#c1aa77]/50 cursor-not-allowed"
-              : "bg-[var(--gold)] hover:bg-[var(--gold-light)]"
-              }`}
-          >
-            {loading ? "Saving..." : "Save Changes"}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              reset();
-              setIsEditing(false);
-            }}
-            className="flex-1 py-4 border border-[#c1aa77]/30 hover:border-[var(--gold)] text-[var(--gold)] text-xs tracking-[4px] uppercase transition-all duration-300"
-          >
-            Cancel
-          </button>
+              />
+              {errors[name] && (
+                <p className="text-red-400 text-xs mt-2 tracking-wide">
+                  {errors[name].message}
+                </p>
+              )}
+            </div>
+          ))}
         </div>
-      ) : (
+
+        {isEditing && (
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              disabled={loading}
+              className={`flex-1 py-4 text-[var(--dark)] text-xs tracking-[4px] uppercase font-medium transition-all duration-300 ${
+                loading
+                  ? "bg-[#c1aa77]/50 cursor-not-allowed"
+                  : "bg-[var(--gold)] hover:bg-[var(--gold-light)]"
+              }`}
+            >
+              {loading ? "Saving..." : "Save Changes"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                reset();
+                setIsEditing(false);
+              }}
+              className="flex-1 py-4 border border-[#c1aa77]/30 hover:border-[var(--gold)] text-[var(--gold)] text-xs tracking-[4px] uppercase transition-all duration-300"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+      </form>
+
+      {!isEditing && (
         <div className="flex gap-4">
           <button
             type="button"
@@ -299,7 +306,7 @@ function ProfileTab({
           </button>
         </div>
       )}
-    </form>
+    </div>
   );
 }
 
