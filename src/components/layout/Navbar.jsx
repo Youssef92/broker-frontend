@@ -9,7 +9,7 @@ import {
   getNotifications,
   markAllAsRead,
   markAsRead,
-  listenToForegroundMessages,
+  // listenToForegroundMessages,
 } from "../../services/notificationService";
 import {
   upgradeToLandlord,
@@ -18,7 +18,7 @@ import {
 import {
   onNotificationReceived,
   offNotificationReceived,
-} from "../../services/signalRService";
+} from "../../services/signalRNotificationService";
 import toast from "react-hot-toast";
 
 const KYC_STATUS = {
@@ -99,27 +99,22 @@ function Navbar() {
     fetchKycStatus();
   }, [user, isLandlord]);
 
-  // Listen to foreground messages — increment count in real time
-  useEffect(() => {
-    if (!user) return;
-    const unsubscribe = listenToForegroundMessages(() => {
-      setUnreadCount((prev) => prev + 1);
-    });
-    return () => unsubscribe();
-  }, [user]);
+  // // Listen to foreground messages — increment count in real time
+  // useEffect(() => {
+  //   if (!user) return;
+  //   const unsubscribe = listenToForegroundMessages(() => {
+  //     setUnreadCount((prev) => prev + 1);
+  //   });
+  //   return () => unsubscribe();
+  // }, [user]);
 
   // SignalR real-time notifications
   useEffect(() => {
     if (!user) return;
 
-    onNotificationReceived((notification) => {
-      // increment bell count
+    const handleNotification = (notification) => {
       setUnreadCount((prev) => prev + 1);
-
-      // if dropdown is open, prepend to list
       setNotifications((prev) => [notification, ...prev]);
-
-      // show toast
       toast(
         notification.message
           ? `${notification.title}: ${notification.message}`
@@ -135,9 +130,10 @@ function Navbar() {
           },
         },
       );
-    });
+    };
 
-    return () => offNotificationReceived();
+    onNotificationReceived(handleNotification);
+    return () => offNotificationReceived(handleNotification);
   }, [user]);
 
   // Close dropdown when clicking outside

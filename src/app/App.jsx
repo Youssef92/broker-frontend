@@ -1,16 +1,15 @@
 import { useEffect } from "react";
 import { listenToForegroundMessages } from "../services/notificationService";
 import {
-  startConnection,
-  onNotificationReceived,
-  offNotificationReceived,
-} from "../services/signalRService";
+  startNotificationConnection,
+  stopNotificationConnection,
+} from "../services/signalRNotificationService";
 import toast from "react-hot-toast";
 import AppRoutes from "./routes";
-// import useAuth from "../hooks/useAuth";
+import useAuth from "../hooks/useAuth";
 
 function App() {
-  // const { user } = useAuth();
+  const { user } = useAuth();
 
   // Firebase foreground messages
   useEffect(() => {
@@ -32,29 +31,14 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  // // SignalR connection
-  // useEffect(() => {
-  //   if (user) {
-  //     startConnection();
-  //   } else {
-  //     stopConnection();
-  //   }
-  // }, [user]);
-
+  // SignalR notifications connection
   useEffect(() => {
-    const handleMessage = (message) => {
-      console.log("📨 New message:", message);
-    };
-
-    startConnection();
-    onNotificationReceived(handleMessage);
-
-    return () => {
-      offNotificationReceived(handleMessage);
-    };
-  }, []);
-
-  // ... rest of your App
+    if (user) {
+      startNotificationConnection();
+    } else {
+      stopNotificationConnection();
+    }
+  }, [user]);
 
   return <AppRoutes />;
 }
