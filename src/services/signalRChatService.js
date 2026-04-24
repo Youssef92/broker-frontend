@@ -2,8 +2,7 @@
 import * as signalR from "@microsoft/signalr";
 import { getAccessToken } from "../utils/tokenManager";
 
-const HUB_URL =
-  "https://broker-system-dwarekbaebcdgac9.spaincentral-01.azurewebsites.net/hubs/chat";
+const HUB_URL = "https://broker.runasp.net/hubs/chat";
 
 let connection = null;
 let retryCount = 0;

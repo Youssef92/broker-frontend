@@ -6,14 +6,12 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target:
-          "https://broker-system-dwarekbaebcdgac9.spaincentral-01.azurewebsites.net",
+        target: "https://broker.runasp.net",
         changeOrigin: true,
         secure: true,
       },
       "/hubs": {
-        target:
-          "https://broker-system-dwarekbaebcdgac9.spaincentral-01.azurewebsites.net",
+        target: "https://broker.runasp.net",
         changeOrigin: true,
         secure: true,
         ws: true, // ✅ critical — enables WebSocket proxying
