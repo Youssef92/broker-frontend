@@ -1,10 +1,15 @@
+// src/pages/landlord/HostReservations.jsx
 import { useState, useEffect, useCallback } from "react";
 // eslint-disable-next-line no-unused-vars
-import { motion } from "framer-motion";
-import { Calendar, MapPin, Search, CreditCard } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Calendar, MapPin, MessageCircle, CreditCard } from "lucide-react";
 import toast from "react-hot-toast";
 import Navbar from "../../components/layout/Navbar";
 import { getHostReservations } from "../../services/hostReservationService";
+import { getConversationUnreadCount } from "../../services/chatService";
+import FloatingChat from "../../components/chat/FloatingChat";
+import { onChatEvent, offChatEvent } from "../../services/signalRChatService";
+import useAuth from "../../hooks/useAuth";
 
 const BOOKING_STATUS = {
   Pending: {
@@ -58,9 +63,10 @@ const SkeletonCard = () => (
   </div>
 );
 
-const ReservationCard = ({ reservation }) => {
+const ReservationCard = ({ reservation, onMessage, unreadCount }) => {
   const status =
     BOOKING_STATUS[reservation.status] ?? BOOKING_STATUS["Pending"];
+  const canMessage = reservation.actions?.canMessageClient;
 
   return (
     <motion.div
@@ -114,8 +120,9 @@ const ReservationCard = ({ reservation }) => {
             <span className="text-white/20">→</span>
             <span>{formatDate(reservation.checkOutDate)}</span>
           </div>
+
           {/* Amount */}
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2 text-sm mb-3">
             <CreditCard size={13} className="text-[var(--gold)] shrink-0" />
             <span className="text-white/40">Your Payout:</span>
             <span className="text-[var(--gold)] font-semibold">
@@ -123,6 +130,31 @@ const ReservationCard = ({ reservation }) => {
               {reservation.currency}
             </span>
           </div>
+
+          {/* Message button */}
+          {canMessage && (
+            <button
+              onClick={() => onMessage(reservation)}
+              className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-white/5 hover:bg-white/10 text-white/70"
+            >
+              <MessageCircle size={13} />
+              Message Guest
+              {unreadCount > 0 && (
+                <span
+                  className="absolute -top-1.5 -right-1.5 flex items-center justify-center rounded-full text-white font-bold"
+                  style={{
+                    minWidth: 16,
+                    height: 16,
+                    fontSize: 9,
+                    background: "#ef4444",
+                    padding: "0 4px",
+                  }}
+                >
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
+            </button>
+          )}
         </div>
       </div>
     </motion.div>
@@ -137,23 +169,39 @@ export default function HostReservations() {
   const [totalCount, setTotalCount] = useState(0);
   const [statusFilter, setStatusFilter] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeChat, setActiveChat] = useState(null);
+  const [unreadCounts, setUnreadCounts] = useState({});
   const PAGE_SIZE = 10;
+
+  const { user } = useAuth();
 
   const fetchReservations = useCallback(async (page, status, search) => {
     setLoading(true);
     try {
-      const params = {
-        PageNumber: page,
-        PageSize: PAGE_SIZE,
-      };
+      const params = { PageNumber: page, PageSize: PAGE_SIZE };
       if (status !== "") params.StatusFilter = status;
       if (search) params.SearchTerm = search;
 
       const result = await getHostReservations(params);
       if (result.succeeded) {
-        setReservations(result.data || []);
+        const fetched = result.data || [];
+        setReservations(fetched);
         setTotalPages(result.totalPages || 1);
         setTotalCount(result.totalCount || 0);
+
+        // Fetch unread counts for messageable reservations in parallel
+        const messageable = fetched.filter((r) => r.actions?.canMessageClient);
+        const counts = await Promise.allSettled(
+          messageable.map((r) => getConversationUnreadCount(r.bookingId)),
+        );
+        const countsMap = {};
+        messageable.forEach((r, i) => {
+          const res = counts[i];
+          if (res.status === "fulfilled" && res.value?.succeeded) {
+            countsMap[r.bookingId] = res.value.data?.count ?? 0;
+          }
+        });
+        setUnreadCounts(countsMap);
       } else {
         toast.error(result.message || "Failed to load reservations.");
       }
@@ -178,6 +226,29 @@ export default function HostReservations() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, statusFilter, fetchReservations]);
 
+  useEffect(() => {
+    if (!user) return;
+
+    const handleNewMessage = (message) => {
+      const senderId = message.senderId ?? message.SenderId;
+      const msgBookingId = message.bookingId ?? message.BookingId;
+
+      if (
+        senderId !== user.id &&
+        msgBookingId &&
+        msgBookingId !== activeChat?.bookingId
+      ) {
+        setUnreadCounts((prev) => ({
+          ...prev,
+          [msgBookingId]: (prev[msgBookingId] ?? 0) + 1,
+        }));
+      }
+    };
+
+    onChatEvent("ReceiveMessage", handleNewMessage);
+    return () => offChatEvent("ReceiveMessage", handleNewMessage);
+  }, [user, activeChat?.bookingId]);
+
   const handleStatusFilter = (value) => {
     setStatusFilter(value);
     setCurrentPage(1);
@@ -186,6 +257,16 @@ export default function HostReservations() {
   const handlePageChange = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleOpenChat = (reservation) => {
+    setActiveChat({
+      bookingId: reservation.bookingId,
+      otherUserName: reservation.clientName ?? "Guest",
+      propertyTitle: reservation.propertyTitle,
+    });
+    // Clear unread badge immediately when opening
+    setUnreadCounts((prev) => ({ ...prev, [reservation.bookingId]: 0 }));
   };
 
   return (
@@ -224,7 +305,6 @@ export default function HostReservations() {
 
           {/* Search + Filter */}
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            {/* Search */}
             <div className="flex gap-2 flex-1">
               <input
                 type="text"
@@ -234,8 +314,6 @@ export default function HostReservations() {
                 className="flex-1 bg-[var(--dark-2)] border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-white/20 outline-none focus:border-[var(--gold)]/40 transition-colors"
               />
             </div>
-
-            {/* Status Filter */}
             <div className="flex gap-2 flex-wrap">
               {STATUS_FILTERS.map((f) => (
                 <button
@@ -271,7 +349,12 @@ export default function HostReservations() {
           ) : (
             <div className="flex flex-col gap-4">
               {reservations.map((r) => (
-                <ReservationCard key={r.bookingId} reservation={r} />
+                <ReservationCard
+                  key={r.bookingId}
+                  reservation={r}
+                  onMessage={handleOpenChat}
+                  unreadCount={unreadCounts[r.bookingId] ?? 0}
+                />
               ))}
             </div>
           )}
@@ -312,6 +395,19 @@ export default function HostReservations() {
           )}
         </div>
       </div>
+
+      {/* Floating Chat */}
+      <AnimatePresence>
+        {activeChat && (
+          <FloatingChat
+            key={activeChat.bookingId}
+            bookingId={activeChat.bookingId}
+            otherUserName={activeChat.otherUserName}
+            propertyTitle={activeChat.propertyTitle}
+            onClose={() => setActiveChat(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

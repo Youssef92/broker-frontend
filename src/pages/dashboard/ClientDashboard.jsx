@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 // eslint-disable-next-line no-unused-vars
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   MapPin,
@@ -11,7 +11,11 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { getMyTrips } from "../../services/bookingService";
+import { getConversationUnreadCount } from "../../services/chatService";
 import Navbar from "../../components/layout/Navbar";
+import FloatingChat from "../../components/chat/FloatingChat";
+import { onChatEvent, offChatEvent } from "../../services/signalRChatService";
+import useAuth from "../../hooks/useAuth";
 
 // ─── Status config ───────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -47,7 +51,7 @@ const formatDate = (dateStr) => {
 };
 
 // ─── Trip Card ───────────────────────────────────────────────────
-const TripCard = ({ trip, onPayOnline, onCancel }) => {
+const TripCard = ({ trip, onPayOnline, onCancel, onMessage, unreadCount }) => {
   const status = STATUS_CONFIG[trip.status] ?? STATUS_CONFIG.Pending;
 
   return (
@@ -111,7 +115,7 @@ const TripCard = ({ trip, onPayOnline, onCancel }) => {
           </span>
         </div>
 
-        {/* Action Buttons — always shown, disabled when not available */}
+        {/* Action Buttons */}
         <div className="flex flex-wrap gap-2 pt-1 border-t border-white/5">
           <button
             onClick={() => trip.actions.canPayOnline && onPayOnline(trip)}
@@ -126,12 +130,11 @@ const TripCard = ({ trip, onPayOnline, onCancel }) => {
             Pay Online
           </button>
 
+          {/* Message button with unread badge */}
           <button
-            onClick={() =>
-              trip.actions.canMessageLandlord && toast("Messaging coming soon")
-            }
+            onClick={() => trip.actions.canMessageLandlord && onMessage(trip)}
             disabled={!trip.actions.canMessageLandlord}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+            className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               trip.actions.canMessageLandlord
                 ? "bg-white/5 hover:bg-white/10 text-white/70"
                 : "bg-white/5 text-white/20 cursor-not-allowed"
@@ -139,6 +142,20 @@ const TripCard = ({ trip, onPayOnline, onCancel }) => {
           >
             <MessageCircle size={13} />
             Message
+            {trip.actions.canMessageLandlord && unreadCount > 0 && (
+              <span
+                className="absolute -top-1.5 -right-1.5 flex items-center justify-center rounded-full text-white font-bold"
+                style={{
+                  minWidth: 16,
+                  height: 16,
+                  fontSize: 9,
+                  background: "#ef4444",
+                  padding: "0 4px",
+                }}
+              >
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
           </button>
 
           <button
@@ -179,7 +196,13 @@ export default function ClientDashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [activeChat, setActiveChat] = useState(null);
+  // { bookingId, otherUserName, propertyTitle }
+  const [unreadCounts, setUnreadCounts] = useState({});
+  // { [bookingId]: number }
   const PAGE_SIZE = 9;
+
+  const { user } = useAuth();
 
   const fetchTrips = async (page) => {
     setLoading(true);
@@ -187,9 +210,26 @@ export default function ClientDashboard() {
       const res = await getMyTrips({ PageNumber: page, PageSize: PAGE_SIZE });
       const result = res.data;
       if (result.succeeded) {
-        setTrips(result.data ?? []);
+        const fetchedTrips = result.data ?? [];
+        setTrips(fetchedTrips);
         setTotalPages(result.totalPages);
         setTotalCount(result.totalCount);
+
+        // Fetch unread counts for all messageable trips in parallel
+        const messageable = fetchedTrips.filter(
+          (t) => t.actions?.canMessageLandlord,
+        );
+        const counts = await Promise.allSettled(
+          messageable.map((t) => getConversationUnreadCount(t.bookingId)),
+        );
+        const countsMap = {};
+        messageable.forEach((t, i) => {
+          const result = counts[i];
+          if (result.status === "fulfilled" && result.value?.succeeded) {
+            countsMap[t.bookingId] = result.value.data?.count ?? 0;
+          }
+        });
+        setUnreadCounts(countsMap);
       } else {
         toast.error(result.message || "Failed to load trips");
       }
@@ -204,6 +244,29 @@ export default function ClientDashboard() {
     fetchTrips(currentPage);
   }, [currentPage]);
 
+  useEffect(() => {
+    if (!user) return;
+
+    const handleNewMessage = (message) => {
+      const senderId = message.senderId ?? message.SenderId;
+      const msgBookingId = message.bookingId ?? message.BookingId;
+
+      if (
+        senderId !== user.id &&
+        msgBookingId &&
+        msgBookingId !== activeChat?.bookingId
+      ) {
+        setUnreadCounts((prev) => ({
+          ...prev,
+          [msgBookingId]: (prev[msgBookingId] ?? 0) + 1,
+        }));
+      }
+    };
+
+    onChatEvent("ReceiveMessage", handleNewMessage);
+    return () => offChatEvent("ReceiveMessage", handleNewMessage);
+  }, [user, activeChat?.bookingId]);
+
   const handlePageChange = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -215,6 +278,16 @@ export default function ClientDashboard() {
 
   const handleCancel = () => {
     toast("Cancel coming soon");
+  };
+
+  const handleOpenChat = (trip) => {
+    setActiveChat({
+      bookingId: trip.bookingId,
+      otherUserName: trip.landlordName ?? "Host",
+      propertyTitle: trip.propertyTitle,
+    });
+    // Clear unread badge for this conversation
+    setUnreadCounts((prev) => ({ ...prev, [trip.bookingId]: 0 }));
   };
 
   return (
@@ -279,6 +352,8 @@ export default function ClientDashboard() {
                   trip={trip}
                   onPayOnline={handlePayOnline}
                   onCancel={handleCancel}
+                  onMessage={handleOpenChat}
+                  unreadCount={unreadCounts[trip.bookingId] ?? 0}
                 />
               ))}
             </div>
@@ -320,6 +395,19 @@ export default function ClientDashboard() {
           )}
         </div>
       </div>
+
+      {/* Floating Chat */}
+      <AnimatePresence>
+        {activeChat && (
+          <FloatingChat
+            key={activeChat.bookingId}
+            bookingId={activeChat.bookingId}
+            otherUserName={activeChat.otherUserName}
+            propertyTitle={activeChat.propertyTitle}
+            onClose={() => setActiveChat(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,6 +1,7 @@
+// src/components/layout/Navbar.jsx
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Heart, Bell, Loader2 } from "lucide-react";
+import { Heart, Bell, Loader2, MessageCircle } from "lucide-react";
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 import useAuth from "../../hooks/useAuth";
@@ -9,7 +10,6 @@ import {
   getNotifications,
   markAllAsRead,
   markAsRead,
-  // listenToForegroundMessages,
 } from "../../services/notificationService";
 import {
   upgradeToLandlord,
@@ -19,6 +19,8 @@ import {
   onNotificationReceived,
   offNotificationReceived,
 } from "../../services/signalRNotificationService";
+import { getTotalUnreadCount } from "../../services/chatService";
+import { onChatEvent, offChatEvent } from "../../services/signalRChatService";
 import toast from "react-hot-toast";
 
 const KYC_STATUS = {
@@ -44,6 +46,7 @@ function timeAgo(dateStr) {
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [chatUnreadCount, setChatUnreadCount] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
@@ -54,6 +57,7 @@ function Navbar() {
   const [upgradingToLandlord, setUpgradingToLandlord] = useState(false);
 
   const dropdownRef = useRef(null);
+  const activeChatBookingIdRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -67,7 +71,25 @@ function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Fetch unread count on mount
+  useEffect(() => {
+    const handleChatOpened = (e) => {
+      activeChatBookingIdRef.current = e.detail.bookingId;
+      setChatUnreadCount(0);
+    };
+    const handleChatClosed = () => {
+      activeChatBookingIdRef.current = null;
+    };
+
+    window.addEventListener("chatOpened", handleChatOpened);
+    window.addEventListener("chatClosed", handleChatClosed);
+
+    return () => {
+      window.removeEventListener("chatOpened", handleChatOpened);
+      window.removeEventListener("chatClosed", handleChatClosed);
+    };
+  }, []);
+
+  // Fetch notification unread count on mount
   useEffect(() => {
     if (!user) return;
     const fetchCount = async () => {
@@ -81,6 +103,35 @@ function Navbar() {
     fetchCount();
   }, [user]);
 
+  // Fetch chat unread count on mount
+  useEffect(() => {
+    if (!user) return;
+    const fetchChatCount = async () => {
+      try {
+        const result = await getTotalUnreadCount();
+        if (result.succeeded) setChatUnreadCount(result.data?.count ?? 0);
+      } catch {
+        // silently fail
+      }
+    };
+    fetchChatCount();
+  }, [user]);
+
+  // Real-time: increment chat unread count on new message
+  useEffect(() => {
+    if (!user) return;
+
+    const handleNewMessage = (message) => {
+      const senderId = message.senderId ?? message.SenderId;
+      if (senderId !== user.id && !activeChatBookingIdRef.current) {
+        setChatUnreadCount((prev) => prev + 1);
+      }
+    };
+
+    onChatEvent("ReceiveMessage", handleNewMessage);
+    return () => offChatEvent("ReceiveMessage", handleNewMessage);
+  }, [user]);
+
   // Fetch KYC status on mount — only for non-landlord logged-in users
   useEffect(() => {
     if (!user || isLandlord) return;
@@ -90,7 +141,6 @@ function Navbar() {
         const result = await getKycStatus();
         if (result.succeeded) setKycStatus(result.data.status);
       } catch {
-        // silently fail — assume NotStarted
         setKycStatus(KYC_STATUS.NotStarted);
       } finally {
         setKycLoading(false);
@@ -99,19 +149,9 @@ function Navbar() {
     fetchKycStatus();
   }, [user, isLandlord]);
 
-  // // Listen to foreground messages — increment count in real time
-  // useEffect(() => {
-  //   if (!user) return;
-  //   const unsubscribe = listenToForegroundMessages(() => {
-  //     setUnreadCount((prev) => prev + 1);
-  //   });
-  //   return () => unsubscribe();
-  // }, [user]);
-
   // SignalR real-time notifications
   useEffect(() => {
     if (!user) return;
-
     const handleNotification = (notification) => {
       setUnreadCount((prev) => prev + 1);
       setNotifications((prev) => [notification, ...prev]);
@@ -131,7 +171,6 @@ function Navbar() {
         },
       );
     };
-
     onNotificationReceived(handleNotification);
     return () => offNotificationReceived(handleNotification);
   }, [user]);
@@ -205,11 +244,15 @@ function Navbar() {
     }
   };
 
-  // Determine KYC button state
+  // Navigate to dashboard chat section
+  const handleChatIconClick = () => {
+    setChatUnreadCount(0);
+    navigate("/dashboard");
+  };
+
   const renderKycButton = () => {
     if (!user || isLandlord || kycLoading) return null;
 
-    // NotStarted or RequiresInput — active button
     if (
       kycStatus === KYC_STATUS.NotStarted ||
       kycStatus === null ||
@@ -229,7 +272,6 @@ function Navbar() {
       );
     }
 
-    // InProgress — disabled with message
     if (kycStatus === KYC_STATUS.InProgress) {
       return (
         <button
@@ -242,7 +284,6 @@ function Navbar() {
       );
     }
 
-    // Rejected, Redacted, Canceled — disabled with contact message
     if (
       kycStatus === KYC_STATUS.Rejected ||
       kycStatus === KYC_STATUS.Redacted ||
@@ -314,6 +355,21 @@ function Navbar() {
         >
           <Heart size={24} />
         </Link>
+
+        {/* Chat icon — only show when logged in */}
+        {user && (
+          <button
+            onClick={handleChatIconClick}
+            className="relative flex items-center text-[#f5f0e8]/50 hover:text-[var(--gold)] transition-colors duration-300"
+          >
+            <MessageCircle size={24} />
+            {chatUnreadCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 bg-[var(--gold)] text-[var(--dark)] text-[9px] font-bold flex items-center justify-center rounded-full">
+                {chatUnreadCount > 99 ? "99+" : chatUnreadCount}
+              </span>
+            )}
+          </button>
+        )}
 
         {/* Bell — only show when logged in */}
         {user && (

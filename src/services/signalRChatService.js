@@ -1,4 +1,3 @@
-// src/services/signalRChatService.js
 import * as signalR from "@microsoft/signalr";
 import { getAccessToken } from "../utils/tokenManager";
 
