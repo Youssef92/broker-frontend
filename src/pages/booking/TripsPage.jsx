@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-// eslint-disable-next-line no-unused-vars
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   MapPin,
@@ -133,11 +132,7 @@ const TripCard = ({ trip, onPayOnline, onCancel, onMessage, unreadCount }) => {
   const status = STATUS_CONFIG[trip.status] ?? STATUS_CONFIG.Pending;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-[var(--dark-2)] border border-white/5 rounded-2xl overflow-hidden hover:border-[var(--gold)]/30 transition-colors duration-300"
-    >
+    <div className="bg-[var(--dark-2)] border border-white/5 rounded-2xl overflow-hidden hover:border-[var(--gold)]/30 transition-colors duration-300">
       {/* Property Image */}
       <div className="relative h-48 overflow-hidden">
         {trip.primaryImageUrl ? (
@@ -208,7 +203,6 @@ const TripCard = ({ trip, onPayOnline, onCancel, onMessage, unreadCount }) => {
             Pay Online
           </button>
 
-          {/* Message button with unread badge */}
           <button
             onClick={() => trip.actions.canMessageLandlord && onMessage(trip)}
             disabled={!trip.actions.canMessageLandlord}
@@ -250,7 +244,7 @@ const TripCard = ({ trip, onPayOnline, onCancel, onMessage, unreadCount }) => {
           </button>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -360,8 +354,8 @@ export default function TripsPage() {
   };
 
   const handleCancelled = (bookingId) => {
-    setTrips((prev) => {
-      const updated = prev.map((t) =>
+    setTrips((prev) =>
+      prev.map((t) =>
         t.bookingId === bookingId
           ? {
               ...t,
@@ -374,13 +368,8 @@ export default function TripsPage() {
               },
             }
           : t,
-      );
-      console.log(
-        "updated trips:",
-        updated.find((t) => t.bookingId === bookingId)?.actions,
-      );
-      return updated;
-    });
+      ),
+    );
   };
 
   const handleOpenChat = (trip) => {
