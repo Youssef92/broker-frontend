@@ -360,8 +360,8 @@ export default function TripsPage() {
   };
 
   const handleCancelled = (bookingId) => {
-    setTrips((prev) =>
-      prev.map((t) =>
+    setTrips((prev) => {
+      const updated = prev.map((t) =>
         t.bookingId === bookingId
           ? {
               ...t,
@@ -374,8 +374,13 @@ export default function TripsPage() {
               },
             }
           : t,
-      ),
-    );
+      );
+      console.log(
+        "updated trips:",
+        updated.find((t) => t.bookingId === bookingId)?.actions,
+      );
+      return updated;
+    });
   };
 
   const handleOpenChat = (trip) => {
