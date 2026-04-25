@@ -73,3 +73,10 @@ export const configureRentalRules = async (propertyId, data) => {
   );
   return response.data;
 };
+
+export const deletePropertyMedia = async (propertyId, mediaId) => {
+  const response = await axiosInstance.delete(
+    `/api/v1/PropertyListings/${propertyId}/media/${mediaId}`,
+  );
+  return response.data;
+};

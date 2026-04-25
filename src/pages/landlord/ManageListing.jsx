@@ -6,12 +6,14 @@ import { ArrowLeft, Camera, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   getManagePropertyDetails,
   publishPropertyListing,
+  uploadPropertyMedia,
   deletePropertyListing,
 } from "../../services/propertyService";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { rentalRulesSchema } from "../../validation/rentalRulesSchema";
 import { configureRentalRules } from "../../services/propertyService";
+import { deletePropertyMedia } from "../../services/propertyService";
 
 const PROPERTY_TYPE = {
   1: "Apartment",
@@ -69,6 +71,7 @@ function ManageListing() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [editingRules, setEditingRules] = useState(false);
+  const [showMediaManager, setShowMediaManager] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -476,6 +479,12 @@ function ManageListing() {
           >
             Delete Listing
           </button>
+          <button
+            onClick={() => setShowMediaManager(true)}
+            className="border border-[var(--gold)] text-[var(--gold)] hover:bg-[var(--gold)] hover:text-[var(--dark)] px-8 py-3 text-xs tracking-[3px] uppercase transition-all duration-300"
+          >
+            Manage Photos
+          </button>
         </div>
 
         {/* Edit Rental Rules Modal */}
@@ -490,7 +499,15 @@ function ManageListing() {
             }}
           />
         )}
-
+        {showMediaManager && (
+          <MediaManagerModal
+            property={property}
+            onClose={() => setShowMediaManager(false)}
+            onUpdated={(updatedMedia) => {
+              setProperty((p) => ({ ...p, media: updatedMedia }));
+            }}
+          />
+        )}
         {/* Delete Confirmation */}
         {showDeleteConfirm && (
           <div className="fixed inset-0 z-50 bg-[#0d0d0d]/80 flex items-center justify-center px-6">
@@ -698,6 +715,264 @@ function EditRentalRulesModal({ property, onClose, onSaved }) {
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+function MediaManagerModal({ property, onClose, onUpdated }) {
+  const [media, setMedia] = useState(
+    [...(property.media || [])].sort((a, b) => a.sortOrder - b.sortOrder),
+  );
+  const [newImages, setNewImages] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const MAX_SIZE = 5 * 1024 * 1024;
+
+  const acceptedMedia = media;
+
+  const handleDelete = async (mediaId) => {
+    setDeletingId(mediaId);
+    try {
+      const result = await deletePropertyMedia(property.id, mediaId);
+      if (result.succeeded) {
+        const updated = media.filter((m) => m.id !== mediaId);
+        setMedia(updated);
+        onUpdated(updated);
+        toast.success("Photo deleted.");
+      } else {
+        toast.error(result.message || "Failed to delete photo.");
+      }
+    } catch {
+      toast.error("Something went wrong.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    files.forEach((file) => {
+      if (file.size > MAX_SIZE) {
+        toast.error(`"${file.name}" exceeds 5MB limit.`);
+        return;
+      }
+      const preview = URL.createObjectURL(file);
+      setNewImages((prev) => [...prev, { file, preview, status: null }]);
+    });
+    e.target.value = "";
+  };
+
+  const handleUpload = async () => {
+    if (media.length + newImages.length > 10) {
+      toast.error("Maximum 10 photos allowed.");
+      return;
+    }
+    if (newImages.length === 0) return;
+    setUploading(true);
+    try {
+      const startSortOrder = media.length + 1;
+      for (let i = 0; i < newImages.length; i++) {
+        const img = newImages[i];
+        const formData = new FormData();
+        formData.append("PropertyListingId", property.id);
+        formData.append("File", img.file);
+        formData.append("Type", 1);
+        formData.append("IsPrimary", false);
+        formData.append("SortOrder", startSortOrder + i);
+        try {
+          await uploadPropertyMedia(property.id, formData);
+        } catch {
+          // continue
+        }
+        if (i < newImages.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        }
+      }
+
+      setUploading(false);
+      setProcessing(true);
+
+      let mediaList = [];
+      while (true) {
+        const manageResult = await getManagePropertyDetails(property.id);
+        if (!manageResult.succeeded) {
+          toast.error("Could not verify image status.");
+          return;
+        }
+        mediaList = manageResult.data.media || [];
+        const FINAL_STATUSES = ["Completed", "Rejected", "Accepted"];
+        const stillPending = mediaList.some(
+          (m) => !FINAL_STATUSES.includes(m.processingStatus),
+        );
+        if (!stillPending) break;
+        await new Promise((resolve) => setTimeout(resolve, 30000));
+      }
+
+      setProcessing(false);
+      setMedia(mediaList.sort((a, b) => a.sortOrder - b.sortOrder));
+      onUpdated(mediaList);
+      setNewImages([]);
+      toast.success("Photos uploaded successfully.");
+    } catch {
+      toast.error("Something went wrong.");
+    } finally {
+      setUploading(false);
+      setProcessing(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-[#0d0d0d]/80 flex items-center justify-center px-6">
+      <div className="bg-[#1a1a1a] border border-[#c1aa77]/20 p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <p className="text-[10px] tracking-[5px] uppercase text-[var(--gold)] mb-1">
+              Media
+            </p>
+            <h2 className="font-cormorant text-3xl text-[var(--cream)] font-light">
+              Manage Photos
+            </h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-[#f5f0e8]/40 hover:text-[var(--cream)] transition-colors text-xl"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Existing Photos */}
+        <p className="text-[10px] tracking-[3px] uppercase text-[#c1aa77]/50 mb-4">
+          Current Photos ({acceptedMedia.length})
+        </p>
+
+        {acceptedMedia.length === 0 ? (
+          <div className="border border-dashed border-[#c1aa77]/10 py-10 flex items-center justify-center mb-6">
+            <p className="text-[#f5f0e8]/20 text-xs tracking-[3px] uppercase">
+              No photos yet
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            {acceptedMedia.map((m) => (
+              <div key={m.id} className="relative group">
+                <img
+                  src={m.fileUrl}
+                  alt=""
+                  className="w-full h-28 object-cover"
+                />
+                {/* Status badge */}
+                <span
+                  className={`absolute top-1 left-1 text-[8px] tracking-[2px] uppercase px-2 py-0.5 ${
+                    m.isPrimary
+                      ? "bg-[var(--gold)] text-[var(--dark)]"
+                      : m.processingStatus === "Rejected" ||
+                          m.processingStatus === 4
+                        ? "bg-red-500 text-white"
+                        : "bg-green-500 text-white"
+                  }`}
+                >
+                  {m.isPrimary
+                    ? "Primary"
+                    : m.processingStatus === "Rejected" ||
+                        m.processingStatus === 4
+                      ? "Rejected"
+                      : "Accepted"}
+                </span>
+
+                {(m.processingStatus === "Rejected" ||
+                  m.processingStatus === 4) &&
+                  m.rejectionReason && (
+                    <p className="absolute bottom-0 left-0 right-0 bg-[#0d0d0d]/80 text-red-400 text-[8px] px-2 py-1 leading-tight line-clamp-2">
+                      {m.rejectionReason}
+                    </p>
+                  )}
+
+                {/* Hover overlay with delete button */}
+                <div className="absolute inset-0 bg-[#0d0d0d]/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  <button
+                    onClick={() => handleDelete(m.id)}
+                    disabled={deletingId === m.id}
+                    className="text-[8px] tracking-[2px] uppercase text-red-400 border border-red-400 px-3 py-1.5 hover:bg-red-400 hover:text-white transition-all duration-300 disabled:opacity-50"
+                  >
+                    {deletingId === m.id ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Upload New Photos */}
+        <p className="text-[10px] tracking-[3px] uppercase text-[#c1aa77]/50 mb-4">
+          Upload New Photos
+        </p>
+
+        <label className="flex flex-col items-center justify-center w-full h-28 border border-dashed border-[#c1aa77]/30 hover:border-[var(--gold)] cursor-pointer transition-colors duration-300 mb-4">
+          <span className="text-[#f5f0e8]/30 text-xs tracking-[3px] uppercase mb-1">
+            Click to select images
+          </span>
+          <span className="text-[#f5f0e8]/20 text-[10px]">
+            PNG, JPG, WEBP — max 5MB each
+          </span>
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileSelect}
+          />
+        </label>
+
+        {newImages.length > 0 && (
+          <div className="grid grid-cols-4 gap-2 mb-4">
+            {newImages.map((img, i) => (
+              <div key={i} className="relative group">
+                <img
+                  src={img.preview}
+                  alt=""
+                  className="w-full h-20 object-cover"
+                />
+                <button
+                  onClick={() =>
+                    setNewImages((prev) => prev.filter((_, j) => j !== i))
+                  }
+                  className="absolute top-1 right-1 bg-red-500 text-white text-[10px] w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex gap-4">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 border border-[#c1aa77]/30 hover:border-[var(--gold)] text-[var(--gold)] text-xs tracking-[3px] uppercase transition-all duration-300"
+          >
+            Close
+          </button>
+          {newImages.length > 0 && (
+            <button
+              onClick={handleUpload}
+              disabled={uploading || processing}
+              className={`flex-1 py-3 text-[var(--dark)] text-xs tracking-[3px] uppercase font-medium transition-all duration-300 ${
+                uploading || processing
+                  ? "bg-[#c1aa77]/50 cursor-not-allowed"
+                  : "bg-[var(--gold)] hover:bg-[var(--gold-light)]"
+              }`}
+            >
+              {uploading
+                ? "Uploading..."
+                : processing
+                  ? "Processing..."
+                  : `Upload ${newImages.length} Photo${newImages.length > 1 ? "s" : ""}`}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
