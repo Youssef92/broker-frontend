@@ -89,7 +89,7 @@ export default function LandlordDashboard() {
                   icon={Briefcase}
                   title="My Trips"
                   description="View your bookings as a guest"
-                  onClick={() => navigate("/dashboard/client")}
+                  onClick={() => navigate("/trips")}
                 />
                 <QuickLinkCard
                   icon={CreditCard}

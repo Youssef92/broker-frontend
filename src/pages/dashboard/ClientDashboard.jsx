@@ -1,294 +1,40 @@
-import { useState, useEffect } from "react";
-// eslint-disable-next-line no-unused-vars
-import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import {
-  MapPin,
-  Calendar,
-  CreditCard,
-  MessageCircle,
-  XCircle,
-} from "lucide-react";
-import toast from "react-hot-toast";
-import { getMyTrips } from "../../services/bookingService";
-import { getConversationUnreadCount } from "../../services/chatService";
+import { CreditCard, User, Briefcase, ArrowRight } from "lucide-react";
 import Navbar from "../../components/layout/Navbar";
-import FloatingChat from "../../components/chat/FloatingChat";
-import { onChatEvent, offChatEvent } from "../../services/signalRChatService";
 import useAuth from "../../hooks/useAuth";
 
-// ─── Status config ───────────────────────────────────────────────
-const STATUS_CONFIG = {
-  Pending: {
-    label: "Pending",
-    color: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30",
-  },
-  Confirmed: {
-    label: "Confirmed",
-    color: "text-blue-400 bg-blue-400/10 border-blue-400/30",
-  },
-  Active: {
-    label: "Active",
-    color: "text-green-400 bg-green-400/10 border-green-400/30",
-  },
-  Completed: {
-    label: "Completed",
-    color: "text-gray-400 bg-gray-400/10 border-gray-400/30",
-  },
-  Cancelled: {
-    label: "Cancelled",
-    color: "text-red-400 bg-red-400/10 border-red-400/30",
-  },
-};
-
-// ─── Helper ──────────────────────────────────────────────────────
-const formatDate = (dateStr) => {
-  return new Date(dateStr).toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-};
-
-// ─── Trip Card ───────────────────────────────────────────────────
-const TripCard = ({ trip, onPayOnline, onCancel, onMessage, unreadCount }) => {
-  const status = STATUS_CONFIG[trip.status] ?? STATUS_CONFIG.Pending;
-
+const HubCard = ({ icon, title, description, onClick }) => {
+  const Icon = icon;
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-[var(--dark-2)] border border-white/5 rounded-2xl overflow-hidden hover:border-[var(--gold)]/30 transition-colors duration-300"
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full text-left p-6 rounded-2xl border border-white/5 bg-[var(--dark-2)] hover:border-[var(--gold)]/30 transition-all duration-300 group flex items-start gap-4"
     >
-      {/* Property Image */}
-      <div className="relative h-48 overflow-hidden">
-        {trip.primaryImageUrl ? (
-          <img
-            src={trip.primaryImageUrl}
-            alt={trip.propertyTitle}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full bg-[var(--dark-3)] flex items-center justify-center">
-            <span className="text-white/20 text-sm">No Image</span>
-          </div>
-        )}
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-[var(--gold)]/10">
+        <Icon size={18} className="text-[var(--gold)]" />
       </div>
-
-      {/* Card Body */}
-      <div className="p-5 space-y-4">
-        {/* Title + City */}
-        <div>
-          <div className="flex items-start justify-between gap-2">
-            <h3
-              className="text-white font-semibold text-base leading-snug line-clamp-1"
-              style={{ fontFamily: "Cormorant Garamond, serif" }}
-            >
-              {trip.propertyTitle}
-            </h3>
-            <div
-              className={`shrink-0 px-3 py-1 rounded-full border text-xs font-medium ${status.color}`}
-            >
-              {status.label}
-            </div>
-          </div>
-          <div className="flex items-center gap-1 mt-1 text-white/50 text-sm">
-            <MapPin size={13} />
-            <span>{trip.city}</span>
-          </div>
-        </div>
-
-        {/* Dates */}
-        <div className="flex items-center gap-2 text-white/60 text-sm">
-          <Calendar size={14} className="text-[var(--gold)] shrink-0" />
-          <span>{formatDate(trip.checkInDate)}</span>
-          <span className="text-white/30">→</span>
-          <span>{formatDate(trip.checkOutDate)}</span>
-        </div>
-
-        {/* Amount */}
-        <div className="flex items-center gap-2 text-sm">
-          <CreditCard size={14} className="text-[var(--gold)] shrink-0" />
-          <span className="text-white/60">Total Paid:</span>
-          <span className="text-[var(--gold)] font-semibold">
-            {trip.totalAmountPaid.toLocaleString()} {trip.currency}
-          </span>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-wrap gap-2 pt-1 border-t border-white/5">
-          <button
-            onClick={() => trip.actions.canPayOnline && onPayOnline(trip)}
-            disabled={!trip.actions.canPayOnline}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              trip.actions.canPayOnline
-                ? "bg-[var(--gold)]/10 hover:bg-[var(--gold)]/20 text-[var(--gold)]"
-                : "bg-white/5 text-white/20 cursor-not-allowed"
-            }`}
-          >
-            <CreditCard size={13} />
-            Pay Online
-          </button>
-
-          {/* Message button with unread badge */}
-          <button
-            onClick={() => trip.actions.canMessageLandlord && onMessage(trip)}
-            disabled={!trip.actions.canMessageLandlord}
-            className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              trip.actions.canMessageLandlord
-                ? "bg-white/5 hover:bg-white/10 text-white/70"
-                : "bg-white/5 text-white/20 cursor-not-allowed"
-            }`}
-          >
-            <MessageCircle size={13} />
-            Message
-            {trip.actions.canMessageLandlord && unreadCount > 0 && (
-              <span
-                className="absolute -top-1.5 -right-1.5 flex items-center justify-center rounded-full text-white font-bold"
-                style={{
-                  minWidth: 16,
-                  height: 16,
-                  fontSize: 9,
-                  background: "#ef4444",
-                  padding: "0 4px",
-                }}
-              >
-                {unreadCount > 99 ? "99+" : unreadCount}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => trip.actions.canCancel && onCancel(trip)}
-            disabled={!trip.actions.canCancel}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              trip.actions.canCancel
-                ? "bg-red-500/10 hover:bg-red-500/20 text-red-400"
-                : "bg-white/5 text-white/20 cursor-not-allowed"
-            }`}
-          >
-            <XCircle size={13} />
-            Cancel
-          </button>
-        </div>
+      <div className="flex-1 min-w-0">
+        <p
+          className="font-semibold text-sm mb-1 text-white"
+          style={{ fontFamily: "Cormorant Garamond, serif" }}
+        >
+          {title}
+        </p>
+        <p className="text-xs leading-relaxed text-white/40">{description}</p>
       </div>
-    </motion.div>
+      <ArrowRight
+        size={16}
+        className="shrink-0 mt-1 text-[var(--gold)]/40 group-hover:text-[var(--gold)] transition-all duration-300 group-hover:translate-x-1"
+      />
+    </button>
   );
 };
 
-// ─── Skeleton Card ───────────────────────────────────────────────
-const SkeletonCard = () => (
-  <div className="bg-[var(--dark-2)] border border-white/5 rounded-2xl overflow-hidden animate-pulse">
-    <div className="h-48 bg-white/5" />
-    <div className="p-5 space-y-3">
-      <div className="h-4 bg-white/5 rounded w-3/4" />
-      <div className="h-3 bg-white/5 rounded w-1/2" />
-      <div className="h-3 bg-white/5 rounded w-2/3" />
-    </div>
-  </div>
-);
-
-// ─── Main Component ──────────────────────────────────────────────
 export default function ClientDashboard() {
   const navigate = useNavigate();
-  const [trips, setTrips] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const [activeChat, setActiveChat] = useState(null);
-  // { bookingId, otherUserName, propertyTitle }
-  const [unreadCounts, setUnreadCounts] = useState({});
-  // { [bookingId]: number }
-  const PAGE_SIZE = 9;
-
   const { user } = useAuth();
-
-  const fetchTrips = async (page) => {
-    setLoading(true);
-    try {
-      const res = await getMyTrips({ PageNumber: page, PageSize: PAGE_SIZE });
-      const result = res.data;
-      if (result.succeeded) {
-        const fetchedTrips = result.data ?? [];
-        setTrips(fetchedTrips);
-        setTotalPages(result.totalPages);
-        setTotalCount(result.totalCount);
-
-        // Fetch unread counts for all messageable trips in parallel
-        const messageable = fetchedTrips.filter(
-          (t) => t.actions?.canMessageLandlord,
-        );
-        const counts = await Promise.allSettled(
-          messageable.map((t) => getConversationUnreadCount(t.bookingId)),
-        );
-        const countsMap = {};
-        messageable.forEach((t, i) => {
-          const result = counts[i];
-          if (result.status === "fulfilled" && result.value?.succeeded) {
-            countsMap[t.bookingId] = result.value.data?.count ?? 0;
-          }
-        });
-        setUnreadCounts(countsMap);
-      } else {
-        toast.error(result.message || "Failed to load trips");
-      }
-    } catch {
-      toast.error("Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTrips(currentPage);
-  }, [currentPage]);
-
-  useEffect(() => {
-    if (!user) return;
-
-    const handleNewMessage = (message) => {
-      const senderId = message.senderId ?? message.SenderId;
-      const msgBookingId = message.bookingId ?? message.BookingId;
-
-      if (
-        senderId !== user.id &&
-        msgBookingId &&
-        msgBookingId !== activeChat?.bookingId
-      ) {
-        setUnreadCounts((prev) => ({
-          ...prev,
-          [msgBookingId]: (prev[msgBookingId] ?? 0) + 1,
-        }));
-      }
-    };
-
-    onChatEvent("ReceiveMessage", handleNewMessage);
-    return () => offChatEvent("ReceiveMessage", handleNewMessage);
-  }, [user, activeChat?.bookingId]);
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handlePayOnline = (trip) => {
-    navigate(`/booking/confirm/${trip.bookingId}`);
-  };
-
-  const handleCancel = () => {
-    toast("Cancel coming soon");
-  };
-
-  const handleOpenChat = (trip) => {
-    setActiveChat({
-      bookingId: trip.bookingId,
-      otherUserName: trip.landlordName ?? "Host",
-      propertyTitle: trip.propertyTitle,
-    });
-    // Clear unread badge for this conversation
-    setUnreadCounts((prev) => ({ ...prev, [trip.bookingId]: 0 }));
-  };
+  const firstName = user?.firstName || "there";
 
   return (
     <div
@@ -299,115 +45,51 @@ export default function ClientDashboard() {
     >
       <div className="relative z-10 pt-12">
         <Navbar />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Hero */}
-          <div className="relative w-full h-52 rounded-3xl overflow-hidden mb-6">
+          <div className="relative w-full h-52 rounded-3xl overflow-hidden mb-10">
             <img
               src="https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=1800&q=80"
-              alt="My Trips"
+              alt="Dashboard"
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
             <div className="absolute inset-0 flex flex-col justify-center px-10">
+              <p className="text-[10px] tracking-[5px] uppercase text-[var(--gold)] mb-2">
+                Dashboard
+              </p>
               <h1
                 className="text-5xl font-semibold text-white"
                 style={{ fontFamily: "Cormorant Garamond, serif" }}
               >
-                My Trips
+                Welcome back, {firstName}
               </h1>
-              {!loading && (
-                <p className="text-white/50 mt-2 text-sm">
-                  {totalCount} {totalCount === 1 ? "booking" : "bookings"} found
-                </p>
-              )}
             </div>
           </div>
 
-          {/* Grid */}
-          {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-                <SkeletonCard key={i} />
-              ))}
-            </div>
-          ) : trips.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-32 text-center">
-              <Calendar size={48} className="text-white/10 mb-4" />
-              <p className="text-white/40 text-lg">No trips yet</p>
-              <p className="text-white/25 text-sm mt-1">
-                Start exploring properties
-              </p>
-              <button
-                onClick={() => navigate("/")}
-                className="mt-6 px-6 py-2.5 rounded-full border border-[var(--gold)]/40 text-[var(--gold)] text-sm hover:bg-[var(--gold)]/10 transition-colors"
-              >
-                Explore Properties
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {trips.map((trip) => (
-                <TripCard
-                  key={trip.bookingId}
-                  trip={trip}
-                  onPayOnline={handlePayOnline}
-                  onCancel={handleCancel}
-                  onMessage={handleOpenChat}
-                  unreadCount={unreadCounts[trip.bookingId] ?? 0}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Pagination */}
-          {!loading && totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 mt-12">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-4 py-2 rounded-lg border border-white/10 text-white/50 hover:border-[var(--gold)]/40 hover:text-[var(--gold)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm"
-              >
-                Previous
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (page) => (
-                  <button
-                    key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
-                      page === currentPage
-                        ? "bg-[var(--gold)] text-[var(--dark)] font-semibold"
-                        : "border border-white/10 text-white/50 hover:border-[var(--gold)]/40 hover:text-[var(--gold)]"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ),
-              )}
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-4 py-2 rounded-lg border border-white/10 text-white/50 hover:border-[var(--gold)]/40 hover:text-[var(--gold)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm"
-              >
-                Next
-              </button>
-            </div>
-          )}
+          {/* Cards */}
+          <div className="flex flex-col gap-3">
+            <HubCard
+              icon={Briefcase}
+              title="My Trips"
+              description="View and manage your bookings"
+              onClick={() => navigate("/trips")}
+            />
+            <HubCard
+              icon={CreditCard}
+              title="Payment Methods"
+              description="Manage your saved cards"
+              onClick={() => navigate("/payment-methods")}
+            />
+            <HubCard
+              icon={User}
+              title="Profile"
+              description="Update your personal information"
+              onClick={() => navigate("/profile")}
+            />
+          </div>
         </div>
       </div>
-
-      {/* Floating Chat */}
-      <AnimatePresence>
-        {activeChat && (
-          <FloatingChat
-            key={activeChat.bookingId}
-            bookingId={activeChat.bookingId}
-            otherUserName={activeChat.otherUserName}
-            propertyTitle={activeChat.propertyTitle}
-            onClose={() => setActiveChat(null)}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 }

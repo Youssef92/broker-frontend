@@ -23,13 +23,12 @@ import BookingConfirmPage from "../pages/booking/BookingConfirmPage";
 import BookingSuccessPage from "../pages/booking/BookingSuccessPage";
 import NotificationsPage from "../pages/notifications/NotificationPage";
 import KycResultPage from "../pages/kyc/KycResultPage";
-import ClientDashboard from "../pages/dashboard/ClientDashboard.jsx";
 import HostListings from "../pages/landlord/HostListings";
 import HostReservations from "../pages/landlord/HostReservations";
 import RolesPage from "../pages/superAdmin/RolesPage";
-import SuperAdminDashboard from "../pages/dashboard/SuperAdminDashboard";
 import PayoutBalancePage from "../pages/superAdmin/PayoutBalancePage";
 import PlatformSettingsPage from "../pages/superAdmin/PlatformSettingsPage";
+import TripsPage from "../pages/booking/TripsPage";
 
 function AppRoutes() {
   return (
@@ -142,14 +141,6 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/dashboard/client"
-        element={
-          <ProtectedRoute>
-            <ClientDashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
         path="/host/listings"
         element={
           <ProtectedRoute requiredRole="Landlord">
@@ -186,6 +177,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute requiredRole="SuperAdmin">
             <PlatformSettingsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/trips"
+        element={
+          <ProtectedRoute>
+            <TripsPage />
           </ProtectedRoute>
         }
       />

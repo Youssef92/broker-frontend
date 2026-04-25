@@ -21,3 +21,11 @@ export async function getBlockedDates(propertyId, startDate, endDate) {
 export const getMyTrips = (params) => {
   return axiosInstance.get("/api/v1/Bookings/my-trips", { params });
 };
+
+export const cancelBooking = async (bookingId, reason) => {
+  const response = await axiosInstance.post(
+    `/api/v1/Bookings/${bookingId}/cancel`,
+    { bookingId, reason },
+  );
+  return response.data;
+};
