@@ -366,7 +366,12 @@ export default function TripsPage() {
           ? {
               ...t,
               status: "Cancelled",
-              actions: { ...t.actions, canCancel: false },
+              actions: {
+                ...t.actions,
+                canCancel: false,
+                canPayOnline: false,
+                canMessageLandlord: false,
+              },
             }
           : t,
       ),
