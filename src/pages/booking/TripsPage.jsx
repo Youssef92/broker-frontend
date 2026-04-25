@@ -362,7 +362,13 @@ export default function TripsPage() {
   const handleCancelled = (bookingId) => {
     setTrips((prev) =>
       prev.map((t) =>
-        t.bookingId === bookingId ? { ...t, status: "Cancelled" } : t,
+        t.bookingId === bookingId
+          ? {
+              ...t,
+              status: "Cancelled",
+              actions: { ...t.actions, canCancel: false },
+            }
+          : t,
       ),
     );
   };
