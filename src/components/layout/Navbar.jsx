@@ -247,7 +247,7 @@ function Navbar() {
   // Navigate to dashboard chat section
   const handleChatIconClick = () => {
     setChatUnreadCount(0);
-    navigate("/dashboard");
+    navigate("/trips");
   };
 
   const renderKycButton = () => {

@@ -6,12 +6,12 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://broker.runasp.net",
+        target: "https://broker-system-api.runasp.net",
         changeOrigin: true,
         secure: true,
       },
       "/hubs": {
-        target: "https://broker.runasp.net",
+        target: "https://broker-system-api.runasp.net",
         changeOrigin: true,
         secure: true,
         ws: true, // ✅ critical — enables WebSocket proxying

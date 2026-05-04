@@ -1,7 +1,7 @@
 import * as signalR from "@microsoft/signalr";
 import { getAccessToken } from "../utils/tokenManager";
 
-const HUB_URL = "https://broker.runasp.net/hubs/chat";
+const HUB_URL = "https://broker-system-api.runasp.net/hubs/chat";
 
 let connection = null;
 let retryCount = 0;
