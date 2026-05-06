@@ -24,9 +24,6 @@ import BookingSuccessPage from "../pages/booking/BookingSuccessPage";
 import NotificationsPage from "../pages/notifications/NotificationPage";
 import KycResultPage from "../pages/kyc/KycResultPage";
 import HostListings from "../pages/landlord/HostListings";
-import RolesPage from "../pages/superAdmin/RolesPage";
-import PayoutBalancePage from "../pages/superAdmin/PayoutBalancePage";
-import PlatformSettingsPage from "../pages/superAdmin/PlatformSettingsPage";
 import TripsPage from "../pages/booking/TripsPage";
 
 function AppRoutes() {
