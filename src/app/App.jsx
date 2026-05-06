@@ -7,7 +7,6 @@ import {
 import toast from "react-hot-toast";
 import AppRoutes from "./routes";
 import useAuth from "../hooks/useAuth";
-import { startChatConnection } from "../services/signalRChatService";
 
 function App() {
   const { user } = useAuth();
@@ -39,11 +38,6 @@ function App() {
     } else {
       stopNotificationConnection();
     }
-  }, [user]);
-
-  useEffect(() => {
-    if (!user) return;
-    startChatConnection();
   }, [user]);
 
   return <AppRoutes />;
