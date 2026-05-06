@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   MapPin,
@@ -7,15 +6,11 @@ import {
   CreditCard,
   MessageCircle,
   XCircle,
+  Loader2,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Loader2 } from "lucide-react";
 import { getMyTrips, cancelBooking } from "../../services/bookingService";
-import { getConversationUnreadCount } from "../../services/chatService";
 import Navbar from "../../components/layout/Navbar";
-import FloatingChat from "../../components/chat/FloatingChat";
-import { onChatEvent, offChatEvent } from "../../services/signalRChatService";
-import useAuth from "../../hooks/useAuth";
 
 // ─── Status config ───────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -268,14 +263,8 @@ export default function TripsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [activeChat, setActiveChat] = useState(null);
   const [cancellingTrip, setCancellingTrip] = useState(null);
-  // { bookingId, otherUserName, propertyTitle }
-  const [unreadCounts, setUnreadCounts] = useState({});
-  // { [bookingId]: number }
   const PAGE_SIZE = 9;
-
-  const { user } = useAuth();
 
   const fetchTrips = async (page) => {
     setLoading(true);
@@ -287,22 +276,6 @@ export default function TripsPage() {
         setTrips(fetchedTrips);
         setTotalPages(result.totalPages);
         setTotalCount(result.totalCount);
-
-        // Fetch unread counts for all messageable trips in parallel
-        const messageable = fetchedTrips.filter(
-          (t) => t.actions?.canMessageLandlord,
-        );
-        const counts = await Promise.allSettled(
-          messageable.map((t) => getConversationUnreadCount(t.bookingId)),
-        );
-        const countsMap = {};
-        messageable.forEach((t, i) => {
-          const result = counts[i];
-          if (result.status === "fulfilled" && result.value?.succeeded) {
-            countsMap[t.bookingId] = result.value.data?.count ?? 0;
-          }
-        });
-        setUnreadCounts(countsMap);
       } else {
         toast.error(result.message || "Failed to load trips");
       }
@@ -316,29 +289,6 @@ export default function TripsPage() {
   useEffect(() => {
     fetchTrips(currentPage);
   }, [currentPage]);
-
-  useEffect(() => {
-    if (!user) return;
-
-    const handleNewMessage = (message) => {
-      const senderId = message.senderId ?? message.SenderId;
-      const msgBookingId = message.bookingId ?? message.BookingId;
-
-      if (
-        senderId !== user.id &&
-        msgBookingId &&
-        msgBookingId !== activeChat?.bookingId
-      ) {
-        setUnreadCounts((prev) => ({
-          ...prev,
-          [msgBookingId]: (prev[msgBookingId] ?? 0) + 1,
-        }));
-      }
-    };
-
-    onChatEvent("ReceiveMessage", handleNewMessage);
-    return () => offChatEvent("ReceiveMessage", handleNewMessage);
-  }, [user, activeChat?.bookingId]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -370,16 +320,6 @@ export default function TripsPage() {
           : t,
       ),
     );
-  };
-
-  const handleOpenChat = (trip) => {
-    setActiveChat({
-      bookingId: trip.bookingId,
-      otherUserName: trip.landlordName ?? "Host",
-      propertyTitle: trip.propertyTitle,
-    });
-    // Clear unread badge for this conversation
-    setUnreadCounts((prev) => ({ ...prev, [trip.bookingId]: 0 }));
   };
 
   return (
@@ -444,8 +384,6 @@ export default function TripsPage() {
                   trip={trip}
                   onPayOnline={handlePayOnline}
                   onCancel={handleCancel}
-                  onMessage={handleOpenChat}
-                  unreadCount={unreadCounts[trip.bookingId] ?? 0}
                 />
               ))}
             </div>
@@ -496,19 +434,6 @@ export default function TripsPage() {
           />
         )}
       </div>
-
-      {/* Floating Chat */}
-      <AnimatePresence>
-        {activeChat && (
-          <FloatingChat
-            key={activeChat.bookingId}
-            bookingId={activeChat.bookingId}
-            otherUserName={activeChat.otherUserName}
-            propertyTitle={activeChat.propertyTitle}
-            onClose={() => setActiveChat(null)}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 }
