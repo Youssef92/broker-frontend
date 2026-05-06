@@ -149,38 +149,6 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/host/reservations"
-        element={
-          <ProtectedRoute requiredRole="Landlord">
-            <HostReservations />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/roles"
-        element={
-          <ProtectedRoute requiredRole="SuperAdmin">
-            <RolesPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/payout-balance"
-        element={
-          <ProtectedRoute requiredRole="SuperAdmin">
-            <PayoutBalancePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/settings"
-        element={
-          <ProtectedRoute requiredRole="SuperAdmin">
-            <PlatformSettingsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
         path="/trips"
         element={
           <ProtectedRoute>
